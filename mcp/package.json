@@ -1,0 +1,22 @@
+{
+	"name": "yaos-mcp",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Headless YAOS device that serves a vault over a remote MCP endpoint, without Obsidian",
+	"type": "module",
+	"bin": { "yaos-mcp": "dist/yaos-mcp.mjs" },
+	"scripts": {
+		"build": "node build.mjs",
+		"start": "node dist/yaos-mcp.mjs serve",
+		"dev": "node --import jiti/register src/main.ts",
+		"typecheck": "../node_modules/.bin/tsc --noEmit -p tsconfig.json",
+		"test": "node --import jiti/register --test --test-force-exit test/*.test.ts"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "1.32.1",
+		"zod": "3.25.76"
+	}
+}
