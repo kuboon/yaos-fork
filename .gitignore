@@ -56,6 +56,11 @@ tools/
 # Durable documentation belongs in docs/.
 notes/
 
+# Worker local secrets and generated cf state (mcp/)
+.dev.vars
+.cloudflare
+mcp/.env*
+
 # relay-dev cf deploy projects (scripts/relay-dev/deploy.sh)
 server/.cf-deploy
 sim-failures/

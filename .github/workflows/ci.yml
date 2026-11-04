@@ -48,8 +48,8 @@ jobs:
       - run: npm run test:client
 
   mcp:
-    # The headless MCP device (mcp/): typecheck, its unit tests and the bundle build. Its relay e2e (mcp/test/e2e.ts)
-    # needs a running relay and is run by hand.
+    # The read-only MCP Worker (mcp/): typecheck, its unit tests and a deploy dry run (the bundle builds and the
+    # bindings resolve). Its relay e2e (mcp/test/e2e.ts, worker-e2e.ts) needs a running relay and is run by hand.
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -67,7 +67,7 @@ jobs:
       - run: npm ci --prefix mcp
       - run: npm --prefix mcp run typecheck
       - run: npm --prefix mcp test
-      - run: npm --prefix mcp run build
+      - run: npm --prefix mcp run check:deploy
 
   sim:
     # Every seed of the sim matrices and the measured sim runs (*.sim.test.ts, 200 seeds at the CI count), dealt to

@@ -244,7 +244,7 @@ export default tseslint.config(
 		// Node-run end-to-end harnesses, like tests/: typechecked by typecheck:client (e2e/client) and typecheck:tests
 		// (e2e/conformance), but in no typed-lint project, so typed rules would abort the whole run on them.
 		"e2e",
-		// The headless MCP device: Node only, typechecked and tested by its own package (mcp/tsconfig.json, CI job mcp).
+		// The read-only MCP Worker: typechecked and tested by its own package (mcp/tsconfig*.json, CI job mcp).
 		"mcp",
 		// The Obsidian preset targets plugin runtime code. Build tooling and
 		// Worker maintenance scripts execute in Node and must not inherit

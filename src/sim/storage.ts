@@ -809,22 +809,6 @@ export class MemStoragePort implements StoragePort {
 		return out;
 	}
 
-	/**
-	 * The committed state of every database, uncopied: committed arrays are never mutated (txs copy on write), so a
-	 * caller that serializes it synchronously sees one consistent state. Never mutate it. For a persistent wrapper's
-	 * snapshot (mcp/src/journalStorage.ts); restore it with fromCommittedState.
-	 */
-	committedState(): readonly unknown[] {
-		return Array.from(this.dbs.values(), (st) => st.data);
-	}
-
-	/** A new live port whose committed databases are `state` (committedState's, deserialized). */
-	static fromCommittedState(state: readonly unknown[], options: MemStorageOptions = {}): MemStoragePort {
-		const port = new MemStoragePort(options);
-		for (const data of state as DbData[]) port.dbs.set(data.name, { data, handles: new Set(), queue: [] });
-		return port;
-	}
-
 	/** Committed version of `name`, or 0. */
 	version(name: string): number {
 		return this.dbs.get(name)?.data.version ?? 0;

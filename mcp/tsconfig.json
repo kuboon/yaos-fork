@@ -1,12 +1,15 @@
 {
-	"extends": "../tsconfig.json",
 	"compilerOptions": {
-		"noEmit": true,
 		"target": "ES2022",
-		"lib": ["DOM", "ES2022"],
-		"types": ["node"],
-		"typeRoots": ["../node_modules/@types"]
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		"noEmit": true,
+		"lib": ["ES2022", "DOM"],
+		"types": ["@cloudflare/workers-types"]
 	},
-	"include": ["src/**/*.ts", "test/**/*.ts"],
-	"exclude": []
+	"include": ["src/**/*.ts", "cloudflare.config.ts"]
 }

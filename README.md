@@ -98,16 +98,16 @@ Separately, each device can keep daily zip snapshots of its notes (YAOS settings
 
 Obsidian vaults remain ordinary local files. Changes made by editors, scripts, Git tools, or agents enter the same reconciliation path and can synchronize across paired devices.
 
-## Without Obsidian: remote MCP
+## Without Obsidian: read-only remote MCP
 
-[`mcp/`](mcp/README.md) is a headless device for plain (not end-to-end encrypted) vaults. Pair it with a code and it
-keeps a synced copy of the vault in a folder. It serves that copy to AI clients as a remote MCP server (bearer token)
-with tools to list, read, search, write, edit, move and delete notes. It runs the plugin's own engine in Node, so its
-edits merge like any device's.
+[`mcp/`](mcp/README.md) is a Cloudflare Worker that serves one plain (not end-to-end encrypted) vault, read-only, as a
+remote MCP server. Pair it with a code on its `/setup` page, and AI clients can list, read and search the vault's
+notes and canvases. It runs no Obsidian and no always-on process: each request reads from the relay what changed
+since the last one, and folds it with the engine's own code.
 
 ## Hosting: Cloudflare only
 
-YAOS runs only on Cloudflare: one Worker with two Durable Object classes (a `VaultDO` per vault and one `ConfigDO` per server), plus an optional R2 bucket for attachments. There is no self-hosted Node or Docker server. The only client outside Obsidian is the headless MCP device in `mcp/`, which is a device, not a server. The server core sits behind small storage, socket and clock ports so its tests run on Node; that is a test seam, not a hosting option.
+YAOS runs only on Cloudflare: one Worker with two Durable Object classes (a `VaultDO` per vault and one `ConfigDO` per server), plus an optional R2 bucket for attachments. There is no self-hosted Node or Docker server and no headless CLI client. The server core sits behind small storage, socket and clock ports so its tests run on Node; that is a test seam, not a hosting option.
 
 The server is an opaque relay. It never interprets payloads, checkpoints, stream names or blob contents.
 
