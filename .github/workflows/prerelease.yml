@@ -1,0 +1,101 @@
+name: Pre-release
+
+# A GitHub pre-release of the Obsidian plugin, for testers (for example through BRAT) before a stable release
+# (release.yml, plain x.y.z tags). Two ways to start one:
+#   - push a tag with a pre-release suffix, e.g. 3.0.1-beta.1 (release.yml's x.y.z pattern does not match it);
+#   - run this workflow by hand (Actions → Pre-release → Run workflow) on any branch: the tag is the version given,
+#     or <manifest version>-pre.<run number>, created on the commit the run builds.
+# Assets: main.js, manifest.json (its version set to the pre-release's, so the plugin reports what it is), and
+# styles.css when the plugin has one.
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+-*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Pre-release version and tag (e.g. 3.0.1-beta.1). Empty: <manifest version>-pre.<run number>"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: prerelease-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run guard:no-tracked-generated-artifacts
+
+      - name: Pick the pre-release version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            VERSION="$GITHUB_REF_NAME"
+          elif [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+          else
+            VERSION="${MANIFEST_VERSION}-pre.${GITHUB_RUN_NUMBER}"
+          fi
+          # A pre-release is x.y.z-<suffix>: never a plain x.y.z, which is release.yml's.
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+$'; then
+            echo "::error::Pre-release version \"$VERSION\" must look like x.y.z-suffix (e.g. ${MANIFEST_VERSION}-beta.1)"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Stage the release assets
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p release
+          cp main.js release/main.js
+          node -e '
+            const fs = require("fs");
+            const m = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
+            m.version = process.env.VERSION;
+            fs.writeFileSync("release/manifest.json", JSON.stringify(m, null, "\t") + "\n");
+          '
+          if [ -f styles.css ]; then cp styles.css release/styles.css; fi
+          ls -l release
+
+      - name: Attest the release assets
+        uses: actions/attest@v4
+        with:
+          subject-path: release/*
+
+      - name: Create or update the pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" release/* --clobber
+            gh release edit "$VERSION" --prerelease
+          else
+            gh release create "$VERSION" release/* \
+              --prerelease \
+              --target "$GITHUB_SHA" \
+              --title "$VERSION" \
+              --generate-notes
+          fi
