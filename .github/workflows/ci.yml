@@ -47,6 +47,28 @@ jobs:
       - run: npm run guard:no-real-time
       - run: npm run test:client
 
+  mcp:
+    # The read-only MCP Worker (mcp/): typecheck, its unit tests and a deploy dry run (the bundle builds and the
+    # bindings resolve). Its relay e2e (mcp/test/e2e.ts, worker-e2e.ts) needs a running relay and is run by hand.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            mcp/package-lock.json
+
+      - run: npm ci
+      - run: npm ci --prefix mcp
+      - run: npm --prefix mcp run typecheck
+      - run: npm --prefix mcp test
+      - run: npm --prefix mcp run check:deploy
+
   sim:
     # Every seed of the sim matrices and the measured sim runs (*.sim.test.ts, 200 seeds at the CI count), dealt to
     # three shards by cost (scripts/sim-test.mjs YAOS_SIM_SHARD); each shard runs its units over one process per core.

@@ -1,0 +1,24 @@
+{
+	"name": "yaos-mcp",
+	"version": "0.2.0",
+	"private": true,
+	"description": "Read-only remote MCP for a YAOS vault, as a Cloudflare Worker (no Obsidian, no always-on process)",
+	"type": "module",
+	"scripts": {
+		"dev": "cf dev",
+		"deploy": "cf deploy",
+		"types": "cf workers types",
+		"typecheck": "../node_modules/.bin/tsc --noEmit -p tsconfig.json && ../node_modules/.bin/tsc --noEmit -p tsconfig.test.json",
+		"test": "node --import jiti/register --test --test-force-exit test/*.test.ts",
+		"check:deploy": "cf deploy --dry-run"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "1.32.1",
+		"zod": "3.25.76"
+	},
+	"devDependencies": {
+		"cf": "1.0.0-beta.27",
+		"wrangler": "4.147.0",
+		"@cloudflare/workers-types": "5.20261001.1"
+	}
+}
