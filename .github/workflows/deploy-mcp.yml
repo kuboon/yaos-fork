@@ -1,0 +1,78 @@
+name: Deploy MCP Worker
+
+# Deploys the read-only MCP Worker (mcp/, its own Worker beside the YAOS relay) with the cf CLI. Runs on pushes to
+# the default branch that touch mcp/ or the shared client sources it bundles, and by hand (Actions → Deploy MCP Worker
+# → Run workflow).
+#
+# Repository settings (Settings → Secrets and variables → Actions):
+#   secrets   CLOUDFLARE_API_TOKEN   an API token allowed to edit Workers (the "Edit Cloudflare Workers" template)
+#             MCP_TOKEN              the bearer token MCP clients send and /setup asks for (32+ characters)
+#   variables CLOUDFLARE_ACCOUNT_ID  optional: the account to deploy to (default: this fork's account)
+#             YAOS_RELAY_WORKER      optional: the relay Worker's name on the same account, bound as a service
+#                                    (default "yaos"; "none" for a relay on another account, reached by URL)
+
+on:
+  push:
+    branches: ["client-remake"]
+    paths:
+      - "mcp/**"
+      - "src/**"
+      - "package-lock.json"
+      - ".github/workflows/deploy-mcp.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-mcp
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || 'ac92f36f0a2d84353b137574157f7480' }}
+      MCP_TOKEN: ${{ secrets.MCP_TOKEN }}
+      YAOS_RELAY_WORKER: ${{ vars.YAOS_RELAY_WORKER || 'yaos' }}
+      CF_QUIET: "1"
+    steps:
+      - name: Check the deploy settings
+        run: |
+          missing=""
+          [ -n "$CLOUDFLARE_API_TOKEN" ] || missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -n "$MCP_TOKEN" ] || missing="$missing MCP_TOKEN"
+          if [ -n "$missing" ]; then
+            echo "::error::Set these repository secrets first (Settings → Secrets and variables → Actions):$missing"
+            exit 1
+          fi
+          if [ "${#MCP_TOKEN}" -lt 32 ]; then
+            echo "::error::MCP_TOKEN must be at least 32 characters"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            mcp/package-lock.json
+
+      - run: npm ci
+      - run: npm ci --prefix mcp
+      - run: npm --prefix mcp run typecheck
+      - run: npm --prefix mcp test
+
+      - name: Deploy
+        working-directory: mcp
+        run: |
+          umask 077
+          secrets="$RUNNER_TEMP/mcp-secrets.env"
+          printf 'MCP_TOKEN=%s\n' "$MCP_TOKEN" > "$secrets"
+          npx cf deploy --secrets-file "$secrets"
+          rm -f "$secrets"

@@ -35,6 +35,29 @@ console lists it and **Revoke** cuts it off.
 
 ## Deploy
 
+This Worker is separate from the YAOS server: it gets its own URL, such as `https://yaos-mcp.<subdomain>.workers.dev`.
+
+### With GitHub Actions (no terminal)
+
+The workflow `.github/workflows/deploy-mcp.yml` deploys this Worker on every push to the default branch that touches
+it, and when you run it by hand (**Actions → Deploy MCP Worker → Run workflow**). Before its first run, add two
+repository secrets under **Settings → Secrets and variables → Actions**:
+
+| Secret | Value |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | A Cloudflare API token made from the **Edit Cloudflare Workers** template |
+| `MCP_TOKEN` | A random string of 32 characters or more. MCP clients send it, and `/setup` asks for it |
+
+Optional repository variables:
+
+- `CLOUDFLARE_ACCOUNT_ID`: the account to deploy to.
+- `YAOS_RELAY_WORKER`: the relay Worker's name on that account. It defaults to `yaos`; set it to `none` when the
+  relay runs on another account.
+
+Then pair the Worker (step 3 below).
+
+### From a terminal
+
 1. Install the dependencies (repository root and this folder) and deploy:
 
    ```sh
