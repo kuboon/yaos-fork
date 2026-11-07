@@ -1,6 +1,7 @@
 # yaos-mcp: read a YAOS vault over remote MCP, without Obsidian
 
-`yaos-mcp` is a Cloudflare Worker that serves one YAOS vault, read-only, as a remote MCP server (Streamable
+`yaos-mcp` is a Cloudflare Worker that serves one YAOS vault as a remote MCP server: it reads the vault and creates
+new notes, nothing else (Streamable
 HTTP, bearer token). It needs no Obsidian and no always-on process. Each request reads from the relay only what
 changed since the previous request, and answers from that.
 
@@ -20,13 +21,19 @@ This Worker does the same folding, on demand:
   rows after what the Worker already holds. An operator reset or restore starts a new epoch, and the view starts
   over.
 
-The Worker never writes to the relay. It is paired like a device and registered under its own pairing grant, so the
+The only write is a new note (`create_file`), sent as any device sends a new file: a namespace `create`, then the
+note's body as one Yjs update, on one socket so the create commits first (`src/create.ts`, `src/appender.ts`). The
+Worker never changes, moves or deletes an existing file. It is paired like a device and registered under its own pairing grant, so the
 console lists it and **Revoke** cuts it off.
 
 ## Limits
 
 - **Plain vaults only.** An end-to-end encrypted vault refuses to open: the Worker holds no vault key.
-- **Read-only.** Notes and canvases read as text. Attachments are listed with their size but not read.
+- **Reads, and creates new notes only.** Notes and canvases read as text; attachments are listed with their size but
+  not read. `create_file` makes `.md` notes up to 512 KiB at a free path (an existing path, in any letter case, is
+  refused). Two devices creating the same path at the same moment are settled by the namespace fold as usual: an
+  identical note merges, otherwise the later one gets a suffix such as `Note (2).md`, and the tool says where the
+  note ended up.
 - **Notes still arriving.** A note's create can commit before its first content does. A note that reads empty
   while it was created with content is flagged as incomplete; read it again shortly.
 - **After a restore.** Right after an operator restore, a note may read with text the restore point had deleted,
@@ -114,6 +121,7 @@ Any MCP client that supports Streamable HTTP and custom headers works the same w
 | `list_files` | Lists files (path, kind; size for attachments), optionally under a folder. |
 | `read_file` | Reads a note or a canvas as text. Paths match the way the vault matches them (case and Unicode form). |
 | `search` | Case-insensitive substring or regex search over notes and canvases. Returns matching lines. |
+| `create_file` | Creates a new note (`.md`) at a free path. Never changes an existing file. |
 | `vault_info` | Which vault this is, the relay's head and the namespace position, and the number of files by kind. |
 
 ## Development

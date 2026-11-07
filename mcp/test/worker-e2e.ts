@@ -71,21 +71,28 @@ async function main(): Promise<void> {
 		return { text: (r.content as { text?: string }[]).map((c) => c.text ?? "").join("\n"), isError: r.isError === true };
 	};
 	const tools = (await client.listTools()).tools.map((t) => t.name).sort();
-	check(JSON.stringify(tools) === JSON.stringify(["list_files", "read_file", "search", "vault_info"]), `the Worker offers the read-only tools (${tools.join(", ")})`);
+	check(JSON.stringify(tools) === JSON.stringify(["create_file", "list_files", "read_file", "search", "vault_info"]), `the Worker offers its tools (${tools.join(", ")})`);
 	// A just-created note may still be arriving (its create commits first): read_file says so until it is whole.
 	await until("Welcome.md reads whole", async () => (await call("read_file", { path: "Welcome.md" })).text === "# Welcome\n\nwritten in Obsidian\n");
 	check(true, "read_file returns the note written in Obsidian");
 	check((await call("list_files", { folder: "Projects" })).text.includes("Projects/Plan.md"), "list_files lists a folder");
 	check((await call("search", { query: "TWO" })).text.includes("\"line\": 2"), "search finds a line case-insensitively");
 	check((await call("read_file", { path: "missing.md" })).isError, "a missing file is an error");
-	const info = JSON.parse((await call("vault_info")).text) as { vaultId?: string; notes?: number; readOnly?: boolean };
-	check(info.vaultId === vault.vaultId && info.notes === 2 && info.readOnly === true, "vault_info describes the vault");
+	const info = JSON.parse((await call("vault_info")).text) as { vaultId?: string; notes?: number };
+	check(info.vaultId === vault.vaultId && info.notes === 2, "vault_info describes the vault");
 
 	obs.vault.userWrite("Welcome.md", "# Welcome\n\nedited in Obsidian\n");
 	obs.vault.userWrite("New.md", "a new note\n");
 	await until("the Worker sees the edit and the new note", async () =>
 		(await call("read_file", { path: "Welcome.md" })).text.includes("edited in Obsidian") && !(await call("read_file", { path: "New.md" })).isError);
 	check(true, "the next request sees what Obsidian changed since");
+
+	const created = await call("create_file", { path: "Inbox/from-worker.md", content: "made by the Worker\n" });
+	check(!created.isError && created.text.includes("created Inbox/from-worker.md"), `create_file creates a note (${created.text})`);
+	await until("the Worker's note reaches Obsidian", () => obs.vault.textOf("Inbox/from-worker.md") === "made by the Worker\n");
+	check(true, "the note created through the Worker appears on the Obsidian device");
+	const dup = await call("create_file", { path: "Welcome.md", content: "x" });
+	check(dup.isError && dup.text.includes("already exists"), "create_file refuses an existing path");
 
 	await client.close();
 	await obs.stop();
