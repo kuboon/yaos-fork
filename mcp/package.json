@@ -10,8 +10,7 @@
 		"types": "cf workers types",
 		"typecheck": "../node_modules/.bin/tsc --noEmit -p tsconfig.json && ../node_modules/.bin/tsc --noEmit -p tsconfig.test.json",
 		"test": "node --import jiti/register --test --test-force-exit test/*.test.ts",
-		"check:deploy": "cf deploy --dry-run",
-		"deploy:ci": "node scripts/deploy.mjs"
+		"check:deploy": "cf deploy --dry-run"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "1.32.1",
