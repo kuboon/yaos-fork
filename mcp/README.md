@@ -55,7 +55,8 @@ Cloudflare can build and deploy this Worker from the repository on every push.
 3. Under **Settings → Variables and Secrets**, add `MCP_TOKEN` with type **Secret** (not under Build → Variables): a
    random string of 32 characters or more, which you make yourself. MCP clients send it, and `/setup` asks for it.
    A deploy does not need it, but the Worker refuses every request until it is set; `/healthz` shows
-   `"tokenConfigured": true` once the Worker sees it.
+   `"tokenConfigured": true` once the Worker sees it; otherwise its `tokenState` says why (`missing`, `too-short`, or
+   `not-a-string` for a binding of another type).
 4. A push to the production branch now deploys the Worker. To deploy without a push, use **Retry build** on its
    latest build. Then pair the Worker (step 3 below).
 

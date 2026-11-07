@@ -23,7 +23,15 @@ import { VaultView } from "./vaultView";
 import { MIN_TOKEN_CHARS, VERSION, bearerOf, json, tokenMatches } from "./http";
 
 const TOKEN_MISSING = `MCP_TOKEN is not set on this Worker (or shorter than ${MIN_TOKEN_CHARS} characters): add it under Settings → Variables and Secrets, type Secret`;
-const tokenConfigured = (env: Env): boolean => (env.MCP_TOKEN ?? "").length >= MIN_TOKEN_CHARS;
+/** Why MCP_TOKEN is or is not usable, for /healthz: never its value or length. */
+type TokenState = "ok" | "missing" | "not-a-string" | "too-short";
+function tokenState(env: Env): TokenState {
+	const t: unknown = env.MCP_TOKEN;
+	if (t === undefined || t === null || t === "") return "missing";
+	if (typeof t !== "string") return "not-a-string";
+	return t.length >= MIN_TOKEN_CHARS ? "ok" : "too-short";
+}
+const tokenConfigured = (env: Env): boolean => tokenState(env) === "ok";
 
 export interface Env {
 	readonly VAULT: DurableObjectNamespace<VaultReader>;
@@ -74,7 +82,7 @@ export class VaultReader extends DurableObject<Env> {
 		const url = new URL(req.url);
 		if (url.pathname === "/healthz") {
 			const id = await this.loadIdentity();
-			return json(200, { ok: true, tokenConfigured: tokenConfigured(this.env), paired: id !== null, vaultId: id?.vaultId ?? null });
+			return json(200, { ok: true, tokenConfigured: tokenConfigured(this.env), tokenState: tokenState(this.env), paired: id !== null, vaultId: id?.vaultId ?? null });
 		}
 		if (url.pathname === "/setup") return this.setup(req);
 		return this.mcp(req);
