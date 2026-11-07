@@ -98,8 +98,10 @@ Claude Code:
 claude mcp add --transport http yaos https://<worker>/mcp --header "Authorization: Bearer $MCP_TOKEN"
 ```
 
-Any MCP client that supports Streamable HTTP and custom headers works the same way. A claude.ai custom connector
-needs OAuth, which this Worker does not offer yet.
+A claude.ai custom connector reserves the `Authorization` header for OAuth: give it a custom header
+`X-API-Key` with the `MCP_TOKEN` value instead (the Worker accepts either header). This Worker has no OAuth.
+
+Any MCP client that supports Streamable HTTP and custom headers works the same way.
 
 ## Tools
 
