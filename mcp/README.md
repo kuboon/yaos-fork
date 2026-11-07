@@ -49,14 +49,17 @@ Cloudflare can build and deploy this Worker from the repository on every push.
    |---|---|
    | Root directory | `mcp` |
    | Build command | `npm ci --prefix .. && npm ci` |
-   | Deploy command | `npx cf deploy` |
+   | Deploy command | `npm run deploy:ci` |
+   | Non-production branch deploy command | `npx cf deploy --dry-run` (or turn off non-production builds) |
    | Build variable `YAOS_RELAY_WORKER` | The relay Worker's name on the same account (for example `yaos`). Leave it unset, or `none`, when the relay runs on another account. |
+   | Build variable `MCP_TOKEN`, type **Secret** | A random string of 32 characters or more that you make yourself (`openssl rand -hex 32`). MCP clients send it, and `/setup` asks for it. |
 
-3. Under **Settings → Variables and Secrets**, add `MCP_TOKEN` with type **Secret** (not under Build → Variables): a
-   random string of 32 characters or more, which you make yourself. MCP clients send it, and `/setup` asks for it.
-   A deploy does not need it, but the Worker refuses every request until it is set; `/healthz` shows
-   `"tokenConfigured": true` once the Worker sees it; otherwise its `tokenState` says why (`missing`, `too-short`, or
-   `not-a-string` for a binding of another type).
+3. `MCP_TOKEN` goes in the **build** variables: a `cf deploy` makes each version with only the bindings of
+   `cloudflare.config.ts`, so a secret added under the Worker's own Variables and Secrets is gone after the next
+   deploy. `npm run deploy:ci` (`scripts/deploy.mjs`) passes the build's `MCP_TOKEN` to every deploy as the Worker's
+   secret. Without it the deploy still runs, but the Worker refuses every request; `/healthz` shows
+   `"tokenConfigured": true` once the Worker has it, and otherwise its `tokenState` says why (`missing`, `too-short`,
+   or `not-a-string`).
 4. A push to the production branch now deploys the Worker. To deploy without a push, use **Retry build** on its
    latest build. Then pair the Worker (step 3 below).
 
