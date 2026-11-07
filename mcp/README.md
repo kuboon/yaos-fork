@@ -49,7 +49,7 @@ Cloudflare can build and deploy this Worker from the repository on every push.
    |---|---|
    | Root directory | `mcp` |
    | Build command | `npm ci --prefix .. && npm ci` |
-   | Deploy command | `npx cf deploy` |
+   | Deploy command | `npx wrangler deploy --x-new-config` |
    | Build variable `YAOS_RELAY_WORKER` | The relay Worker's name on the same account (for example `yaos`). Leave it unset, or `none`, when the relay runs on another account. |
 
 3. Under **Settings → Variables and Secrets**, add `MCP_TOKEN` with type **Secret** (not under Build → Variables): a
@@ -57,6 +57,10 @@ Cloudflare can build and deploy this Worker from the repository on every push.
    A deploy does not need it, but the Worker refuses every request until it is set; `/healthz` shows
    `"tokenConfigured": true` once the Worker sees it; otherwise its `tokenState` says why (`missing`, `too-short`, or
    `not-a-string` for a binding of another type).
+   `cf deploy` runs Wrangler with `--strict`, so it aborts ("Aborting the upload operation because of conflicts")
+   whenever the Worker was last changed in the dashboard, for example when `MCP_TOKEN` was set or rotated. Wrangler
+   itself, given the same `cloudflare.config.ts` (`--x-new-config`), shows that difference and deploys anyway, keeping
+   the Worker's secrets.
 4. A push to the production branch now deploys the Worker. To deploy without a push, use **Retry build** on its
    latest build. Then pair the Worker (step 3 below).
 
