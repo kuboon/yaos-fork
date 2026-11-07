@@ -37,24 +37,25 @@ console lists it and **Revoke** cuts it off.
 
 This Worker is separate from the YAOS server: it gets its own URL, such as `https://yaos-mcp.<subdomain>.workers.dev`.
 
-### With GitHub Actions (no terminal)
+### With Workers Builds (no terminal)
 
-The workflow `.github/workflows/deploy-mcp.yml` deploys this Worker on every push to the default branch that touches
-it, and when you run it by hand (**Actions → Deploy MCP Worker → Run workflow**). Before its first run, add two
-repository secrets under **Settings → Secrets and variables → Actions**:
+Cloudflare can build and deploy this Worker from the repository on every push.
 
-| Secret | Value |
-|---|---|
-| `CLOUDFLARE_API_TOKEN` | A Cloudflare API token made from the **Edit Cloudflare Workers** template |
-| `MCP_TOKEN` | A random string of 32 characters or more. MCP clients send it, and `/setup` asks for it |
+1. In the Cloudflare dashboard, create a Worker named `yaos-mcp`. Under **Settings → Build**, connect it to this
+   repository. Use the default branch as its production branch.
+2. Set the build:
 
-Optional repository variables:
+   | Setting | Value |
+   |---|---|
+   | Root directory | `mcp` |
+   | Build command | `npm ci --prefix .. && npm ci` |
+   | Deploy command | `npx cf deploy` |
+   | Build variable `YAOS_RELAY_WORKER` | The relay Worker's name on the same account (for example `yaos`). Leave it unset, or `none`, when the relay runs on another account. |
 
-- `CLOUDFLARE_ACCOUNT_ID`: the account to deploy to.
-- `YAOS_RELAY_WORKER`: the relay Worker's name on that account. It defaults to `yaos`; set it to `none` when the
-  relay runs on another account.
-
-Then pair the Worker (step 3 below).
+3. Under **Settings → Variables and Secrets**, add the secret `MCP_TOKEN`: a random string of 32 characters or more.
+   MCP clients send it, and `/setup` asks for it.
+4. A push to the production branch now deploys the Worker. To deploy without a push, use **Retry build** on its
+   latest build. Then pair the Worker (step 3 below).
 
 ### From a terminal
 
