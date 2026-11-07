@@ -6,7 +6,7 @@
  *   /mcp      MCP Streamable HTTP (stateless JSON responses), `Authorization: Bearer <MCP_TOKEN>`.
  *   /setup    GET: a small form; POST (form or JSON {server, code, name?, replace?}) with the token: pairs the reader
  *             with a vault using a one-time pairing code (setup.ts).
- *   /healthz  unauthenticated liveness: whether a vault is paired.
+ *   /healthz  unauthenticated liveness: whether MCP_TOKEN is set and whether a vault is paired.
  *
  * One Durable Object (VaultReader, named "default") holds the reader's identity in its storage and the vault view in
  * memory, so consecutive requests only read the relay's new rows.
@@ -22,10 +22,13 @@ import { registerTools } from "./tools";
 import { VaultView } from "./vaultView";
 import { MIN_TOKEN_CHARS, VERSION, bearerOf, json, tokenMatches } from "./http";
 
+const TOKEN_MISSING = `MCP_TOKEN is not set on this Worker (or shorter than ${MIN_TOKEN_CHARS} characters): add it under Settings → Variables and Secrets, type Secret`;
+const tokenConfigured = (env: Env): boolean => (env.MCP_TOKEN ?? "").length >= MIN_TOKEN_CHARS;
+
 export interface Env {
 	readonly VAULT: DurableObjectNamespace<VaultReader>;
-	/** SECRET: the bearer token MCP clients send, and the setup form asks for. */
-	readonly MCP_TOKEN: string;
+	/** SECRET: the bearer token MCP clients send, and the setup form asks for. Set on the Worker (cloudflare.config.ts). */
+	readonly MCP_TOKEN?: string;
 	/** Optional service binding to the relay Worker (a Worker cannot fetch another Worker of the same account by URL). */
 	readonly RELAY?: Fetcher;
 }
@@ -38,8 +41,8 @@ export default {
 		if (url.pathname === "/setup" && req.method === "GET") return new Response(SETUP_PAGE, { headers: { "content-type": "text/html; charset=utf-8" } });
 		if (url.pathname === "/setup" && req.method === "POST") return reader.fetch(req);
 		if (url.pathname !== "/mcp") return json(404, { error: "not_found" });
-		if (env.MCP_TOKEN.length < MIN_TOKEN_CHARS) return json(500, { error: "MCP_TOKEN is not set (or shorter than 32 characters)" });
-		if (!(await tokenMatches(bearerOf(req), env.MCP_TOKEN))) return json(401, { error: "unauthorized" }, { "www-authenticate": "Bearer" });
+		if (!tokenConfigured(env)) return json(500, { error: TOKEN_MISSING });
+		if (!(await tokenMatches(bearerOf(req), env.MCP_TOKEN ?? ""))) return json(401, { error: "unauthorized" }, { "www-authenticate": "Bearer" });
 		return reader.fetch(req);
 	},
 } satisfies ExportedHandler<Env>;
@@ -71,7 +74,7 @@ export class VaultReader extends DurableObject<Env> {
 		const url = new URL(req.url);
 		if (url.pathname === "/healthz") {
 			const id = await this.loadIdentity();
-			return json(200, { ok: true, paired: id !== null, vaultId: id?.vaultId ?? null });
+			return json(200, { ok: true, tokenConfigured: tokenConfigured(this.env), paired: id !== null, vaultId: id?.vaultId ?? null });
 		}
 		if (url.pathname === "/setup") return this.setup(req);
 		return this.mcp(req);
@@ -109,7 +112,8 @@ export class VaultReader extends DurableObject<Env> {
 		if (req.headers.get("content-type")?.includes("application/json")) Object.assign(form, await req.json().catch(() => ({})));
 		else (await req.formData().catch(() => new FormData())).forEach((v, k) => { form[k] = v; });
 		const presented = bearerOf(req) ?? (typeof form.token === "string" ? form.token : null);
-		if (!(await tokenMatches(presented, this.env.MCP_TOKEN))) return json(401, { error: "unauthorized: the MCP token is missing or wrong" });
+		if (!tokenConfigured(this.env)) return json(500, { error: TOKEN_MISSING });
+		if (!(await tokenMatches(presented, this.env.MCP_TOKEN ?? ""))) return json(401, { error: "unauthorized: the MCP token is missing or wrong" });
 		const server = typeof form.server === "string" ? form.server.trim() : "";
 		const code = typeof form.code === "string" ? form.code.trim() : "";
 		const name = typeof form.name === "string" && form.name.trim() ? form.name.trim() : "MCP (read-only)";

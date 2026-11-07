@@ -52,8 +52,10 @@ Cloudflare can build and deploy this Worker from the repository on every push.
    | Deploy command | `npx cf deploy` |
    | Build variable `YAOS_RELAY_WORKER` | The relay Worker's name on the same account (for example `yaos`). Leave it unset, or `none`, when the relay runs on another account. |
 
-3. Under **Settings → Variables and Secrets**, add the secret `MCP_TOKEN`: a random string of 32 characters or more.
-   MCP clients send it, and `/setup` asks for it.
+3. Under **Settings → Variables and Secrets**, add `MCP_TOKEN` with type **Secret** (not under Build → Variables): a
+   random string of 32 characters or more, which you make yourself. MCP clients send it, and `/setup` asks for it.
+   A deploy does not need it, but the Worker refuses every request until it is set; `/healthz` shows
+   `"tokenConfigured": true` once the Worker sees it.
 4. A push to the production branch now deploys the Worker. To deploy without a push, use **Retry build** on its
    latest build. Then pair the Worker (step 3 below).
 
