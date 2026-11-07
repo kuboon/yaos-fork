@@ -20,4 +20,9 @@ export async function tokenMatches(presented: string | null, token: string): Pro
 	return diff === 0;
 }
 
-export const bearerOf = (req: Request): string | null => /^Bearer\s+(.+)$/i.exec(req.headers.get("authorization") ?? "")?.[1]?.trim() ?? null;
+/**
+ * The token a client presents: `Authorization: Bearer <token>`, or `X-API-Key: <token>` for clients that keep the
+ * Authorization header for OAuth (a claude.ai custom connector's own headers cannot be Authorization).
+ */
+export const presentedToken = (req: Request): string | null =>
+	/^Bearer\s+(.+)$/i.exec(req.headers.get("authorization") ?? "")?.[1]?.trim() || req.headers.get("x-api-key")?.trim() || null;

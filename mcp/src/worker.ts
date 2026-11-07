@@ -3,7 +3,7 @@
  * process: each request reads what changed on the relay since the last one and answers from that (vaultView.ts).
  *
  * Routes:
- *   /mcp      MCP Streamable HTTP (stateless JSON responses), `Authorization: Bearer <MCP_TOKEN>`.
+ *   /mcp      MCP Streamable HTTP (stateless JSON responses), `Authorization: Bearer <MCP_TOKEN>` or `X-API-Key: <MCP_TOKEN>`.
  *   /setup    GET: a small form; POST (form or JSON {server, code, name?, replace?}) with the token: pairs the reader
  *             with a vault using a one-time pairing code (setup.ts).
  *   /healthz  unauthenticated liveness: whether MCP_TOKEN is set and whether a vault is paired.
@@ -20,7 +20,7 @@ import { pairReader, type ReaderIdentity } from "./setup";
 import { SETUP_PAGE } from "./setupPage";
 import { registerTools } from "./tools";
 import { VaultView } from "./vaultView";
-import { MIN_TOKEN_CHARS, VERSION, bearerOf, json, tokenMatches } from "./http";
+import { MIN_TOKEN_CHARS, VERSION, presentedToken, json, tokenMatches } from "./http";
 
 const TOKEN_MISSING = `MCP_TOKEN is not set on this Worker (or shorter than ${MIN_TOKEN_CHARS} characters): add it under Settings → Variables and Secrets, type Secret`;
 /** Why MCP_TOKEN is or is not usable, for /healthz: never its value or length. */
@@ -50,7 +50,7 @@ export default {
 		if (url.pathname === "/setup" && req.method === "POST") return reader.fetch(req);
 		if (url.pathname !== "/mcp") return json(404, { error: "not_found" });
 		if (!tokenConfigured(env)) return json(500, { error: TOKEN_MISSING });
-		if (!(await tokenMatches(bearerOf(req), env.MCP_TOKEN ?? ""))) return json(401, { error: "unauthorized" }, { "www-authenticate": "Bearer" });
+		if (!(await tokenMatches(presentedToken(req), env.MCP_TOKEN ?? ""))) return json(401, { error: "unauthorized" }, { "www-authenticate": "Bearer" });
 		return reader.fetch(req);
 	},
 } satisfies ExportedHandler<Env>;
@@ -119,7 +119,7 @@ export class VaultReader extends DurableObject<Env> {
 		const form: Record<string, unknown> = {};
 		if (req.headers.get("content-type")?.includes("application/json")) Object.assign(form, await req.json().catch(() => ({})));
 		else (await req.formData().catch(() => new FormData())).forEach((v, k) => { form[k] = v; });
-		const presented = bearerOf(req) ?? (typeof form.token === "string" ? form.token : null);
+		const presented = presentedToken(req) ?? (typeof form.token === "string" ? form.token : null);
 		if (!tokenConfigured(this.env)) return json(500, { error: TOKEN_MISSING });
 		if (!(await tokenMatches(presented, this.env.MCP_TOKEN ?? ""))) return json(401, { error: "unauthorized: the MCP token is missing or wrong" });
 		const server = typeof form.server === "string" ? form.server.trim() : "";
