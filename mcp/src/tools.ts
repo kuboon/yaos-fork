@@ -1,11 +1,12 @@
 /**
- * The read-only MCP tools. Each call first brings the vault view up to date with the relay (vaultView.ts refresh),
+ * The MCP tools: reading, and creating new notes (create.ts). Each call first brings the vault view up to date with the relay (vaultView.ts refresh),
  * so a tool always answers from the vault as committed at that moment.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+import type { Created } from "./create";
 import type { VaultView } from "./vaultView";
 
 /** Default and largest number of search hits. */
@@ -33,10 +34,11 @@ function folderPrefix(folder: string | undefined): string {
 	return f === "" ? "" : `${f}/`;
 }
 
-/** What the tools need: the view, and the device's own state for vault_info. */
+/** What the tools need: the view, the device's own state for vault_info, and creating a note. */
 export interface ToolHost {
 	view(): Promise<VaultView>;
 	info(): Promise<Record<string, unknown>>;
+	create(path: string, content: string): Promise<Created>;
 }
 
 export function registerTools(server: McpServer, host: ToolHost): void {
@@ -105,6 +107,20 @@ export function registerTools(server: McpServer, host: ToolHost): void {
 			}
 		}
 		return json({ count: hits.length, truncated: hits.length >= limit || scanned < notes.length, notesScanned: scanned, hits });
+	}));
+
+	server.registerTool("create_file", {
+		title: "Create note",
+		description: "Creates a new note (.md) in the vault; it syncs to every device. Fails if a file already exists at the path: existing notes are never changed.",
+		inputSchema: {
+			path: z.string().describe("Vault path of the new note, e.g. \"Inbox/idea.md\""),
+			content: z.string().describe("The note's markdown text"),
+		},
+	}, ({ path, content }) => guard(async () => {
+		const r = await host.create(path, content);
+		if (r.state === "merged") return text(`an identical note was created at ${r.path} at the same time; they are one note now`);
+		if (r.path !== path.normalize("NFC").replace(/^\/+/, "")) return text(`created ${r.path} (another file took the requested path at the same moment)`);
+		return text(`created ${r.path} (${r.bytes} bytes)`);
 	}));
 
 	server.registerTool("vault_info", {

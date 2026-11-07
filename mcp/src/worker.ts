@@ -1,5 +1,5 @@
 /**
- * yaos-mcp: a read-only remote MCP server for one YAOS vault, as a Cloudflare Worker. No Obsidian and no always-on
+ * yaos-mcp: a remote MCP server for one YAOS vault (read, and create new notes), as a Cloudflare Worker. No Obsidian and no always-on
  * process: each request reads what changed on the relay since the last one and answers from that (vaultView.ts).
  *
  * Routes:
@@ -15,6 +15,8 @@
 import { DurableObject } from "cloudflare:workers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { openWithFetch } from "./appender";
+import { createNote } from "./create";
 import { createRelayAccess } from "./relay";
 import { pairReader, type ReaderIdentity } from "./setup";
 import { SETUP_PAGE } from "./setupPage";
@@ -92,6 +94,22 @@ export class VaultReader extends DurableObject<Env> {
 		const server = new McpServer({ name: "yaos", version: VERSION });
 		registerTools(server, {
 			view: () => this.freshView(),
+			create: async (path, content) => {
+				const id = await this.loadIdentity();
+				if (!id) throw new Error("No vault is paired yet. Open /setup on this server and pair it with a pairing code.");
+				const view = await this.freshView();
+				return createNote({
+					view,
+					deviceId: id.deviceId,
+					reserveFrameNo: async (floor) => {
+						// Durable Object storage calls are not interleaved with other events: no two creates share a frameNo.
+						const next = Math.max((await this.ctx.storage.get<number>("nsFrameNo")) ?? 0, floor) + 1;
+						await this.ctx.storage.put("nsFrameNo", next);
+						return next;
+					},
+					append: { baseUrl: id.host, vaultId: id.vaultId, deviceToken: id.deviceToken, fetch: this.relayFetch(), openSocket: openWithFetch(this.relayFetch()) },
+				}, path, content);
+			},
 			info: async () => {
 				const id = await this.loadIdentity();
 				if (!id) return { paired: false };
@@ -102,7 +120,7 @@ export class VaultReader extends DurableObject<Env> {
 					paired: true, server: id.host, vaultId: id.vaultId, deviceName: id.grantName, pairedAt: id.pairedAt,
 					epoch: r.epoch, headSeq: r.headSeq, namespaceSeq: r.nsSeq,
 					files: files.length, notes: files.filter((f) => f.kind === "markdown").length, canvases: files.filter((f) => f.kind === "canvas").length,
-					attachments: files.filter((f) => f.kind === "blob").length, readOnly: true,
+					attachments: files.filter((f) => f.kind === "blob").length, writes: "create new notes only",
 				};
 			},
 		});
@@ -124,7 +142,7 @@ export class VaultReader extends DurableObject<Env> {
 		if (!(await tokenMatches(presented, this.env.MCP_TOKEN ?? ""))) return json(401, { error: "unauthorized: the MCP token is missing or wrong" });
 		const server = typeof form.server === "string" ? form.server.trim() : "";
 		const code = typeof form.code === "string" ? form.code.trim() : "";
-		const name = typeof form.name === "string" && form.name.trim() ? form.name.trim() : "MCP (read-only)";
+		const name = typeof form.name === "string" && form.name.trim() ? form.name.trim() : "MCP";
 		const replace = form.replace === true || form.replace === "on" || form.replace === "true";
 		if (!server || !code) return json(400, { error: "server and code are required" });
 		if ((await this.loadIdentity()) && !replace) return json(409, { error: "a vault is already paired; send replace to pair another one (revoke the old device in its console)" });

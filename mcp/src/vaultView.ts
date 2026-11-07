@@ -22,7 +22,7 @@ import { decodeNsFoldV1 } from "../../src/core/codec/nsFoldV1";
 import { decodeNsOps } from "../../src/core/codec/nsOps";
 import { bytesToHex } from "../../src/core/codec/lib0";
 import { buildIndex, foldNsFrame, newNsFoldIndex, newNsFoldState } from "../../src/core/ns/fold";
-import { NS_STREAM, docStream, type DocId, type DocKind, type NsEntry, type NsFoldIndex, type NsFoldState, type StreamName, type VaultPath } from "../../src/core/types";
+import { NS_STREAM, docStream, type DeviceId, type DocId, type DocKind, type NsEntry, type NsFoldIndex, type NsFoldState, type StreamName, type VaultPath } from "../../src/core/types";
 import { pathKey } from "../../src/core/paths/pathKey";
 import type { ReadPage, RelayRow } from "../../src/ports/relay";
 import { projectCanvasBytes } from "../../src/engine/reconcile/canvasDoc";
@@ -32,7 +32,7 @@ const crypto0 = identityCrypto();
 
 export class EncryptedVaultError extends Error {
 	constructor() {
-		super("this vault is end-to-end encrypted; the read-only MCP reads plain vaults only");
+		super("this vault is end-to-end encrypted; the YAOS MCP serves plain vaults only");
 		this.name = "EncryptedVaultError";
 	}
 }
@@ -96,6 +96,26 @@ export class VaultView {
 			return this.ns.coversSeq;
 		});
 		return { epoch, headSeq, nsSeq: this.ns.coversSeq };
+	}
+
+	/** The epoch of what this view holds (null before the first refresh). */
+	get currentEpoch(): string | null {
+		return this.epoch;
+	}
+
+	/** The namespace seq this view has folded through: a writer's authorNsSeq. */
+	get nsSeq(): number {
+		return this.ns.coversSeq;
+	}
+
+	/** Highest ns frameNo the fold accepted from `deviceId` (its replay window edge, e2ee-design §8.2), 0 if none. */
+	replayEdge(deviceId: string): number {
+		return this.ns.replay.get(deviceId as DeviceId)?.r ?? 0;
+	}
+
+	/** The entry of `docId`, whatever its state. Call refresh() first. */
+	entryById(docId: string): NsEntry | null {
+		return this.ns.entries.get(docId as DocId) ?? null;
 	}
 
 	/** Live entries, by path. Call refresh() first. */

@@ -15,7 +15,7 @@ export const SETUP_PAGE = `<!doctype html>
 </style>
 </head>
 <body>
-<h1>Pair the read-only MCP</h1>
+<h1>Pair the YAOS MCP</h1>
 <p class="note">On a paired device, open YAOS settings and choose <b>Pair another device</b> (or use <b>Pair a device</b> in the server console), then enter the code here. The code works once and expires after 15 minutes.</p>
 <form method="post" action="/setup">
 	<label for="server">YAOS server URL</label>
@@ -23,7 +23,7 @@ export const SETUP_PAGE = `<!doctype html>
 	<label for="code">Pairing code</label>
 	<input id="code" name="code" type="text" autocomplete="one-time-code" required>
 	<label for="name">Device name</label>
-	<input id="name" name="name" type="text" value="MCP (read-only)">
+	<input id="name" name="name" type="text" value="MCP">
 	<label for="token">MCP token (the MCP_TOKEN secret of this Worker)</label>
 	<input id="token" name="token" type="password" required>
 	<label><input name="replace" type="checkbox"> Replace the vault already paired</label>
