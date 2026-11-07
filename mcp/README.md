@@ -35,6 +35,30 @@ console lists it and **Revoke** cuts it off.
 
 ## Deploy
 
+This Worker is separate from the YAOS server: it gets its own URL, such as `https://yaos-mcp.<subdomain>.workers.dev`.
+
+### With Workers Builds (no terminal)
+
+Cloudflare can build and deploy this Worker from the repository on every push.
+
+1. In the Cloudflare dashboard, create a Worker named `yaos-mcp`. Under **Settings → Build**, connect it to this
+   repository. Use the default branch as its production branch.
+2. Set the build:
+
+   | Setting | Value |
+   |---|---|
+   | Root directory | `mcp` |
+   | Build command | `npm ci --prefix .. && npm ci` |
+   | Deploy command | `npx cf deploy` |
+   | Build variable `YAOS_RELAY_WORKER` | The relay Worker's name on the same account (for example `yaos`). Leave it unset, or `none`, when the relay runs on another account. |
+
+3. Under **Settings → Variables and Secrets**, add the secret `MCP_TOKEN`: a random string of 32 characters or more.
+   MCP clients send it, and `/setup` asks for it.
+4. A push to the production branch now deploys the Worker. To deploy without a push, use **Retry build** on its
+   latest build. Then pair the Worker (step 3 below).
+
+### From a terminal
+
 1. Install the dependencies (repository root and this folder) and deploy:
 
    ```sh

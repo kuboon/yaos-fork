@@ -1,8 +1,9 @@
 import { bindings, defineConfig, exports } from "cf/config";
 
 // YAOS_RELAY_WORKER: the relay Worker's name when it runs on the same Cloudflare account (a Worker cannot fetch
-// another Worker of its own account by URL; this binds it as a service instead). Leave unset for a relay elsewhere.
-const relayWorker = process.env.YAOS_RELAY_WORKER;
+// another Worker of its own account by URL; this binds it as a service instead). Leave unset, or "none", for a relay
+// elsewhere.
+const relayWorker = process.env.YAOS_RELAY_WORKER && process.env.YAOS_RELAY_WORKER !== "none" ? process.env.YAOS_RELAY_WORKER : undefined;
 
 export default defineConfig(() => ({
 	worker: {
