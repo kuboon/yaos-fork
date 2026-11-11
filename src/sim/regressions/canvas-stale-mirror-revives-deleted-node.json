@@ -1,0 +1,107 @@
+{
+	"seed": 327686334,
+	"config": {
+		"devices": 3,
+		"faults": "DEFAULT_FAULTS",
+		"seed": 327686334
+	},
+	"violations": [
+		{
+			"inv": "canvas",
+			"detail": "n:aa9n0 deleted on A at step 170 is back in canvas/c3.canvas with no concurrent edit and no conflict copy"
+		}
+	],
+	"note": "Nightly sweep, seed 327686334, the full run's plan: C's synced mirror held the canvas at the empty hash when its store was wiped; the CRDT, emptied by A's delete, matched it again, so the stale disk copy holding aa9n0 read as a local addition. Same fix as canvas-wiped-store-stale-copy-revives-deleted-node.json.",
+	"minimizedPlan": [
+		{
+			"i": 85,
+			"gapMs": 1335,
+			"user": {
+				"t": "deleteToken",
+				"dev": 2,
+				"view": 0.7215243214741349,
+				"pick": 0.3332962468266487
+			}
+		},
+		{
+			"i": 161,
+			"gapMs": 384,
+			"canvas": {
+				"t": "cCreate",
+				"dev": 2,
+				"name": 3,
+				"nodes": 0,
+				"seed": 1242881024
+			}
+		},
+		{
+			"i": 86,
+			"gapMs": 757,
+			"user": {
+				"t": "open",
+				"dev": 2,
+				"file": 0.9672350299078971
+			}
+		},
+		{
+			"i": 169,
+			"gapMs": 330,
+			"canvas": {
+				"t": "cAddNode",
+				"dev": 0,
+				"file": 0.8867770882789046,
+				"kind": "file",
+				"seed": 1615397295
+			}
+		},
+		{
+			"i": 98,
+			"gapMs": 105,
+			"fault": {
+				"t": "idbLost",
+				"dev": 0
+			}
+		},
+		{
+			"i": 99,
+			"gapMs": 389,
+			"fault": {
+				"t": "commitCrash",
+				"dev": 0,
+				"commits": 4,
+				"when": "before",
+				"downMs": 6108
+			}
+		},
+		{
+			"i": 170,
+			"gapMs": 221,
+			"canvas": {
+				"t": "cDeleteNode",
+				"dev": 0,
+				"file": 0.9370956078637391,
+				"node": 0.2193848080933094
+			}
+		},
+		{
+			"i": 100,
+			"gapMs": 40,
+			"fault": {
+				"t": "idbWipe",
+				"dev": 2,
+				"mirrors": true,
+				"downMs": 6425
+			}
+		},
+		{
+			"i": 101,
+			"gapMs": 827,
+			"user": {
+				"t": "deleteToken",
+				"dev": 0,
+				"view": 0.09288142318837345,
+				"pick": 0.03344596107490361
+			}
+		}
+	]
+}

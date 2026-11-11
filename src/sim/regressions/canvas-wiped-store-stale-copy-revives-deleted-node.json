@@ -1,0 +1,97 @@
+{
+	"seed": 327686334,
+	"config": {
+		"devices": 3,
+		"faults": "DEFAULT_FAULTS",
+		"seed": 327686334
+	},
+	"violations": [
+		{
+			"inv": "canvas",
+			"detail": "n:aa9n0 deleted on A at step 170 is back in canvas/c3.canvas with no concurrent edit and no conflict copy"
+		}
+	],
+	"note": "Nightly sweep, seed 327686334. C's store was wiped before its synced mirror recorded the canvas sync that brought node aa9n0; A deleted the node meanwhile. On recovery C had no stored base and an empty CRDT, and the merge took the empty canvas as the base, so the stale disk copy re-added the node everywhere. Fix: canvasJob does not take a base from the CRDT side (empty, or at the synced hash) when the disk holds a record the CRDT deleted (canvasDoc diskHoldsDeletedRecord); a no-base conflict copy keeps the disk text. Focused tests: reconciler.canvas.test.ts \"a store lost before its sync point ...\" and \"a stale synced mirror ...\". canvas-stale-mirror-revives-deleted-node.json is the same seed's full-run plan (the stale mirror entry at the CRDT's hash).",
+	"minimizedPlan": [
+		{
+			"i": 161,
+			"gapMs": 384,
+			"canvas": {
+				"t": "cCreate",
+				"dev": 2,
+				"name": 3,
+				"nodes": 0,
+				"seed": 1242881024
+			}
+		},
+		{
+			"i": 86,
+			"gapMs": 757,
+			"user": {
+				"t": "open",
+				"dev": 2,
+				"file": 0.9672350299078971
+			}
+		},
+		{
+			"i": 169,
+			"gapMs": 330,
+			"canvas": {
+				"t": "cAddNode",
+				"dev": 0,
+				"file": 0.8867770882789046,
+				"kind": "file",
+				"seed": 1615397295
+			}
+		},
+		{
+			"i": 98,
+			"gapMs": 105,
+			"fault": {
+				"t": "idbLost",
+				"dev": 0
+			}
+		},
+		{
+			"i": 99,
+			"gapMs": 389,
+			"fault": {
+				"t": "commitCrash",
+				"dev": 0,
+				"commits": 4,
+				"when": "before",
+				"downMs": 6108
+			}
+		},
+		{
+			"i": 170,
+			"gapMs": 221,
+			"canvas": {
+				"t": "cDeleteNode",
+				"dev": 0,
+				"file": 0.9370956078637391,
+				"node": 0.2193848080933094
+			}
+		},
+		{
+			"i": 100,
+			"gapMs": 40,
+			"fault": {
+				"t": "idbWipe",
+				"dev": 2,
+				"mirrors": true,
+				"downMs": 6425
+			}
+		},
+		{
+			"i": 101,
+			"gapMs": 827,
+			"user": {
+				"t": "deleteToken",
+				"dev": 0,
+				"view": 0.09288142318837345,
+				"pick": 0.03344596107490361
+			}
+		}
+	]
+}
