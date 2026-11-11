@@ -613,7 +613,8 @@ export function checkCanvas(devs: readonly SimDevice[], oracle: CanvasOracle): V
 			const own = roots.filter((x) => doc && x.doc === doc).map((x) => x.path);
 			const stems = new Set([path, ...own].filter((p): p is string => typeof p === "string").map((p) => p.replace(/\.canvas$/, "")));
 			const copyOf = (p: string): boolean => isConflictCopy(p) && stems.has(p.slice(0, p.indexOf(" (conflict")));
-			const known = roots.filter((x) => (lineage && lineageOf(x.root) === lineage) || (doc && x.doc === doc) || (!lineage && copyOf(x.path)));
+			// Only while the written doc is still there: a copy at that path once its doc is gone can be another canvas's.
+			const known = roots.filter((x) => (lineage && lineageOf(x.root) === lineage) || (doc && x.doc === doc) || (!lineage && own.length > 0 && copyOf(x.path)));
 			const hs = known.length > 0 ? known : removal ? [] : roots.filter((x) => x.root[field] !== undefined);
 			return hs.length > 0 ? hs.map((x) => valueOf(x.root, field)) : null;
 		}
