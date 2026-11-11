@@ -600,15 +600,21 @@ export function checkCanvas(devs: readonly SimDevice[], oracle: CanvasOracle): V
 	}
 
 	// writes (lost updates)
-	const finalsOf = (rec: string, field: string, lineage: string | null | undefined, doc: string | null | undefined, removal: boolean): string[] | null => {
+	const finalsOf = (rec: string, field: string, lineage: string | null | undefined, doc: string | null | undefined, removal: boolean, path?: string): string[] | null => {
 		if (rec === "root") {
 			// A root has no id: its holders are the canvases of the written one's lineage (canvas.ts LINEAGE_KEY;
 			// conflict copies included, the field absent or not), and the canvas of the doc it was written in: another
 			// device's rewrite of the whole canvas, merged into that doc, replaces the lineage key there (suite-0 hot
 			// canvas seed 8). A lineage no canvas holds any more (the canvas was deleted, or merged into another doc
 			// whose root won) or none at all: every canvas holding the field, and a removal is not judged (a canvas
-			// without the field may or may not be the written one).
-			const known = roots.filter((x) => (lineage && lineageOf(x.root) === lineage) || (doc && x.doc === doc));
+			// without the field may or may not be the written one). A canvas with no lineage (created empty): its conflict
+			// copies (the path of the written one or of its doc, with a conflict suffix) hold it too, as a lineage's do
+			// (soak seed 327686214: a store wiped with its mirrors kept an unsent root field in a no-base conflict copy).
+			const own = roots.filter((x) => doc && x.doc === doc).map((x) => x.path);
+			const stems = new Set([path, ...own].filter((p): p is string => typeof p === "string").map((p) => p.replace(/\.canvas$/, "")));
+			const copyOf = (p: string): boolean => isConflictCopy(p) && stems.has(p.slice(0, p.indexOf(" (conflict")));
+			// Only while the written doc is still there: a copy at that path once its doc is gone can be another canvas's.
+			const known = roots.filter((x) => (lineage && lineageOf(x.root) === lineage) || (doc && x.doc === doc) || (!lineage && own.length > 0 && copyOf(x.path)));
 			const hs = known.length > 0 ? known : removal ? [] : roots.filter((x) => x.root[field] !== undefined);
 			return hs.length > 0 ? hs.map((x) => valueOf(x.root, field)) : null;
 		}
@@ -630,7 +636,7 @@ export function checkCanvas(devs: readonly SimDevice[], oracle: CanvasOracle): V
 		if (w.rec !== "root" && oracle.record(w.rec)?.deleted) continue;
 		if (dangling(w.rec)) continue;
 		if (oracle.discarded.has(`${w.rec}|${w.field}|${w.value}`) || oracle.discardedRemovals.has(w)) continue;
-		const finals = finalsOf(w.rec, w.field, w.lineage, w.doc, w.value === ABSENT);
+		const finals = finalsOf(w.rec, w.field, w.lineage, w.doc, w.value === ABSENT, w.path);
 		if (!finals) continue;
 		const anc = oracle.ancestors(w);
 		if (anc.size === 0) continue;
