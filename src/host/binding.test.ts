@@ -326,6 +326,42 @@ test("binding: a doc frozen under unsaved keystrokes saves the view at once (an 
 	assert.equal(v.getText(), "abc typed\nmore\n");
 });
 
+for (const change of [{ t: "renamed", path: "a.md" }, { t: "merged", into: "winner" }] as const) {
+	test(`binding: a doc retargeted (${change.t}) under unsaved keystrokes saves the view first`, async () => {
+		const s = setup();
+		const { clock, ws, bm, vault } = s;
+		const docId = file(s, "a.md", "abc\n");
+		bm.start();
+		const v = ws.openFile("a.md");
+		assert.ok(v);
+		await clock.advance(5);
+		v.edit(3, 0, " typed");
+		assert.equal(v.isDirty(), true);
+		// The doc was merged into another device's create and pruned (sim smallPrune seed 709787544): the keystrokes
+		// are only in its replica and the editor; the re-open binds at the file's doc with no base.
+		bm.onDocRetarget(docId, change as never);
+		await clock.advance(5);
+		assert.equal(vault.textOf("a.md"), "abc typed\n", "on disk now: the winner's reconcile merges them");
+		vault.externalWrite("a.md", "abc typed\nmore\n");
+		await clock.advance(1_000);
+		assert.match(v.getText(), /abc typed/);
+	});
+}
+
+test("binding: a stray rename keeps holding the view's saves (its file is another doc's)", async () => {
+	const s = setup();
+	const { clock, ws, bm, vault } = s;
+	const docId = file(s, "a.md", "abc\n");
+	bm.start();
+	const v = ws.openFile("a.md");
+	assert.ok(v);
+	await clock.advance(5);
+	v.edit(3, 0, " typed");
+	bm.onDocRetarget(docId, { t: "renamed", path: "b.md" as never, stray: true });
+	await clock.advance(5);
+	assert.equal(vault.textOf("a.md"), "abc\n", "not written over the other doc's file");
+});
+
 test("binding: a frozen doc stays unbound with a notice; notBindable waits until bindable", async () => {
 	const s = setup();
 	const { clock, ws, engine, bm, notices } = s;

@@ -1,0 +1,248 @@
+{
+	"seed": 709787544,
+	"config": {
+		"devices": 3,
+		"faults": "DEFAULT_FAULTS",
+		"smallPrune": true,
+		"seed": 709787544
+	},
+	"violations": [
+		{
+			"inv": "tokens",
+			"detail": "lost [C.28] (typed on C at step 28)"
+		},
+		{
+			"inv": "tokens",
+			"detail": "lost [C.29] (typed on C at step 29)"
+		}
+	],
+	"note": "Nightly sweep (small tombstone cap). After an epoch reset two devices re-created the same note with the same text; one create merged into the other and the merged alias was pruned in the same fold. A view bound to the losing doc held unsaved keystrokes (only in the loser's replica and the editor); the retarget re-opened it by path at the winner with no base, and an outside write reloaded the unbound view over them. Fix: binding.ts onDocRetarget saves a dirty view before unbinding on a merged or (non-stray) renamed retarget, as for frozen; the winner's reconcile merges the saved text. Focused test: binding.test.ts \"a doc retargeted (merged|renamed) under unsaved keystrokes ...\". Seed 709787544.",
+	"minimizedPlan": [
+		{
+			"i": 126,
+			"gapMs": 436,
+			"canvas": {
+				"t": "cFileRef",
+				"dev": 2,
+				"file": 0.9094655776862055,
+				"node": 0.3534127869643271,
+				"pick": 0.5019574491307139
+			}
+		},
+		{
+			"i": 130,
+			"gapMs": 77,
+			"canvas": {
+				"t": "cDeleteEdge",
+				"dev": 1,
+				"file": 0.21014932170510292,
+				"edge": 0.4231329374015331
+			}
+		},
+		{
+			"i": 14,
+			"gapMs": 1029,
+			"user": {
+				"t": "type",
+				"dev": 0,
+				"view": 0.8646043627522886,
+				"pos": 0.025689501781016588,
+				"nl": false
+			}
+		},
+		{
+			"i": 131,
+			"gapMs": 0,
+			"user": {
+				"t": "setting",
+				"dev": 1,
+				"file": 0,
+				"key": 0,
+				"del": false
+			}
+		},
+		{
+			"i": 132,
+			"gapMs": 325,
+			"canvas": {
+				"t": "cColor",
+				"dev": 2,
+				"file": 0.14021246298216283,
+				"node": 0.8659777990542352,
+				"clear": false
+			}
+		},
+		{
+			"i": 15,
+			"gapMs": 382,
+			"user": {
+				"t": "create",
+				"dev": 1,
+				"name": 0
+			}
+		},
+		{
+			"i": 16,
+			"gapMs": 1126,
+			"fault": {
+				"t": "offline",
+				"dev": 0,
+				"durationMs": 21131
+			}
+		},
+		{
+			"i": 134,
+			"gapMs": 102,
+			"canvas": {
+				"t": "cDeleteNode",
+				"dev": 2,
+				"file": 0.8790854213293642,
+				"node": 0.18237818870693445
+			}
+		},
+		{
+			"i": 22,
+			"gapMs": 1387,
+			"user": {
+				"t": "open",
+				"dev": 0,
+				"file": 0.25978239183314145
+			}
+		},
+		{
+			"i": 135,
+			"gapMs": 126,
+			"canvas": {
+				"t": "cRewrite",
+				"dev": 0,
+				"file": 0.5666473545134068,
+				"seed": 2079390816,
+				"move": true,
+				"sort": false,
+				"by": "external"
+			}
+		},
+		{
+			"i": 23,
+			"gapMs": 1057,
+			"user": {
+				"t": "type",
+				"dev": 0,
+				"view": 0.07667219266295433,
+				"pos": 0.6286981529556215,
+				"nl": false
+			}
+		},
+		{
+			"i": 24,
+			"gapMs": 1115,
+			"user": {
+				"t": "open",
+				"dev": 2,
+				"file": 0.1436395936179906
+			}
+		},
+		{
+			"i": 25,
+			"gapMs": 31,
+			"fault": {
+				"t": "clockSkew",
+				"dev": 0,
+				"deltaMs": 110192443
+			}
+		},
+		{
+			"i": 136,
+			"gapMs": 53,
+			"canvas": {
+				"t": "cMove",
+				"dev": 0,
+				"file": 0.05607226910069585,
+				"node": 0.16934148618020117
+			}
+		},
+		{
+			"i": 26,
+			"gapMs": 682,
+			"fault": {
+				"t": "epochReset"
+			}
+		},
+		{
+			"i": 137,
+			"gapMs": 263,
+			"canvas": {
+				"t": "cAddNode",
+				"dev": 1,
+				"file": 0.9497298521455377,
+				"kind": "text",
+				"seed": 1697351275
+			}
+		},
+		{
+			"i": 27,
+			"gapMs": 707,
+			"user": {
+				"t": "type",
+				"dev": 1,
+				"view": 0.7034760359674692,
+				"pos": 0.2854922958649695,
+				"nl": false
+			}
+		},
+		{
+			"i": 138,
+			"gapMs": 161,
+			"canvas": {
+				"t": "cReorder",
+				"dev": 2,
+				"file": 0.5330445761792362,
+				"node": 0.11298864800482988,
+				"front": false
+			}
+		},
+		{
+			"i": 28,
+			"gapMs": 238,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.05119319609366357,
+				"pos": 0.0881960759870708,
+				"nl": false
+			}
+		},
+		{
+			"i": 29,
+			"gapMs": 175,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.24906778312288225,
+				"pos": 0.8077524965628982,
+				"nl": false
+			}
+		},
+		{
+			"i": 30,
+			"gapMs": 485,
+			"user": {
+				"t": "create",
+				"dev": 2,
+				"name": 0
+			}
+		},
+		{
+			"i": 139,
+			"gapMs": 459,
+			"canvas": {
+				"t": "cText",
+				"dev": 2,
+				"file": 0.4933304914738983,
+				"node": 0.1681325538083911,
+				"pos": 0.5684827228542417,
+				"del": true
+			}
+		}
+	]
+}

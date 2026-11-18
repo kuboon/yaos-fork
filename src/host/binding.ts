@@ -371,7 +371,12 @@ export class BindingManager {
 			// 2 s save, and a write by another app inside that window reloads the unbound view over them (sim suite 1
 			// seed 1482901505: a revoked device's doc froze 5 ms after a keystroke). Saved now, they are on disk, where
 			// the doc's reconcile takes them after the release like any outside edit.
-			const unsaved = change.t === "frozen" && slot.view.isDirty();
+			// Merged or pruned (re-opened by path at the doc that owns the file now) the same: the re-open binds with no
+			// base, the old doc's edits are only in its replica, and once the alias is pruned nothing carries them to the
+			// winner (sim smallPrune seed 709787544: keystrokes typed into a re-created note were lost when the create
+			// merged into another device's and was pruned in the same fold). Saved, the winner's reconcile merges them.
+			// Not a stray rename: that file is another doc's, and its saves are held (holdStray).
+			const unsaved = (change.t === "frozen" || change.t === "merged" || (change.t === "renamed" && !change.stray)) && slot.view.isDirty();
 			this.unbindSlot(slot);
 			if (unsaved) void slot.view.save().catch(() => undefined);
 			if (change.t === "renamed" && change.stray) {
