@@ -121,6 +121,20 @@ export function baseSeenBy(base: CanvasRanked, doc: Y.Doc): CanvasRanked {
 	return changed ? makeRanked(Object.assign(Object.create(null) as Record<string, JsonValue>, base.data.rootFields), n, nodeRanks, e, edgeRanks) : base;
 }
 
+/**
+ * True when `disk` holds a node or edge the doc held and deleted (a tombstone in its map). Such a file is older than
+ * the delete (written before it reached this device), not a new record: a base taken from the CRDT side, with no
+ * stored base, would read it as an addition and revive the record everywhere (sim soak seed 327686334: a store wiped
+ * before its synced mirror caught up). A tombstone the doc dropped (garbage-collected before a snapshot) is not seen.
+ */
+export function diskHoldsDeletedRecord(disk: CanvasSemanticData, doc: Y.Doc): boolean {
+	const deleted = (m: Y.Map<unknown>, ids: Iterable<string>): boolean => {
+		for (const id of ids) if (m._map.get(id)?.deleted) return true;
+		return false;
+	};
+	return deleted(doc.getMap<unknown>("nodes"), disk.nodes.keys()) || deleted(doc.getMap<unknown>("edges"), disk.edges.keys());
+}
+
 export function emptyCanvas(): CanvasRanked {
 	return makeRanked(Object.create(null) as Record<string, JsonValue>, new Map(), new Map(), new Map(), new Map());
 }

@@ -27,7 +27,7 @@ import { exactFingerprint } from "../../core/hash/markdownLf";
 import { canvasLogicalHash, canvasToMergeText, type CanvasRanked } from "../../core/hash/canvasCanonical";
 import { isShrinkingOverwrite } from "../../core/plan/brake";
 import type { IntentRecord } from "../store/schema";
-import { applyCanvas, baseSeenBy, emptyCanvas, projectCanvasBytes, projectionHash, readCanvas, visibleCanvas } from "./canvasDoc";
+import { applyCanvas, baseSeenBy, diskHoldsDeletedRecord, emptyCanvas, projectCanvasBytes, projectionHash, readCanvas, visibleCanvas } from "./canvasDoc";
 import { isEmptyCanvas, mergeCanvasSides, parseDiskCanvas, parseMergeText, rankDisk, withEpochDeletes, type CanvasMergeOutput } from "./canvasMerge";
 import { epochBaseKey, epochBaseOf, MAX_CAS_ATTEMPTS, overwriteAllowed, trustedEpochBase, writeConflictCopy, type ReconcileOp } from "./contentSteps";
 import type { BodyHandle } from "./deps";
@@ -84,11 +84,20 @@ export async function mergeCanvas(env: Env, op: ReconcileOp, h: BodyHandle): Pro
 			const crdt = projectCanvasBytes(h.doc);
 			if (!crdt.ok) return invalid(env, docId, op.path, `crdt: ${crdt.reason}`, `crdt:${h.version().remoteSeq}`);
 			const token = canvasToMergeText(crdt.ranked);
-			// No stored base: a side still at the synced content is the base (see mergeJob).
+			// No stored base: a side still at the synced content is the base (see mergeJob). A CRDT side (empty, or at the
+			// synced hash) is not one when the disk holds a record the CRDT deleted: that file predates the delete, and the
+			// match is the doc returning to an earlier state (a sync write the lost store never recorded), so the merge
+			// keeps the disk text as a no-base conflict copy instead of reviving the record.
 			const trusted = trustedEpochBase(epochBase, token, "line");
 			const epochRanked = trusted === null ? null : parseMergeText(trusted);
+			const crdtBase = async (): Promise<CanvasRanked | null> => {
+				const b = isEmptyCanvas(crdt.ranked) ? emptyCanvas()
+					: !s || op.noBase || op.pathBase || (await projectionHash(port, crdt)) !== s.contentHash ? null : crdt.ranked;
+				return b && diskHoldsDeletedRecord(disk.data, h.doc) ? null : b;
+			};
+			const diskAtSynced = !isEmptyCanvas(crdt.ranked) && !!s && !op.noBase && !op.pathBase && diskHash === s.contentHash;
 			const base0 = storedBase ?? (epochRanked && epochDeleted ? withEpochDeletes(epochRanked, crdt.ranked, disk.data, epochDeleted) : epochRanked)
-				?? (isEmptyCanvas(crdt.ranked) ? emptyCanvas() : !s || op.noBase || op.pathBase ? null : diskHash === s.contentHash ? rankDisk(disk.data, null, crdt.ranked) : (await projectionHash(port, crdt)) === s.contentHash ? crdt.ranked : null);
+				?? (diskAtSynced ? rankDisk(disk.data, null, crdt.ranked) : await crdtBase());
 			triedBase = base0;
 			// Fields of a record whose map lost a concurrent create are not the replica's: the disk's are this side's change.
 			const base = base0 && baseSeenBy(base0, h.doc);

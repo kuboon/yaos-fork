@@ -372,3 +372,54 @@ test("canvas: a merge that shrinks the file past the overwrite brake is held unt
 	assert.deepEqual(j?.nodes.map((n) => [n.id, n.text]), [["c", "C local"]]);
 	sameLogical(w, "big.canvas", id);
 });
+
+test("canvas: a store lost before its sync point keeps a stale disk copy of records deleted remotely as a conflict copy, not a re-add", async () => {
+	// Soak seed 327686334: the canvas (one node) synced to disk, the store died before its mirror caught up, a remote
+	// device deleted the node meanwhile. The CRDT is empty, but it held the node: an empty base would read the stale
+	// file as "the user added it" and revive it everywhere.
+	const w = await booted();
+	const id = w.log.remoteCreate(P("board.canvas"), canvas([textNode("a", "Alpha")]));
+	await w.sync();
+	assert.ok(nodeOf(disk(w, "board.canvas"), "a"));
+	w.log.remoteEditCanvas(id, (d) => d.getMap<unknown>("nodes").delete("a"));
+	await w.wipeAndRebootWithoutMirror();
+	await w.sync();
+	assert.equal(nodeOf(parseCanvas(w.log.canvasText(id)!), "a"), undefined, "the deleted node is not revived in the CRDT");
+	assert.equal(nodeOf(disk(w, "board.canvas"), "a"), undefined, "nor on disk");
+	const copies = w.conflictCopies();
+	assert.equal(copies.length, 1, `one conflict copy keeps the stale disk text: ${copies.join(", ")}`);
+	assert.ok(nodeOf(disk(w, copies[0]!), "a"));
+});
+
+test("canvas: an empty canvas that never held a record is still the base after a lost store (the disk's records upload)", async () => {
+	const w = await booted();
+	const id = w.log.remoteCreate(P("board.canvas"), canvas([]));
+	await w.sync();
+	w.vault.userWrite("board.canvas", canvas([textNode("a", "Alpha")]));
+	await w.wipeAndRebootWithoutMirror();
+	await w.sync();
+	assert.ok(nodeOf(parseCanvas(w.log.canvasText(id)!), "a"), "the disk's node is a one-sided addition");
+	assert.deepEqual(w.conflictCopies(), []);
+});
+
+test("canvas: a stale synced mirror at the CRDT's hash does not make a record the CRDT deleted a local addition", async () => {
+	// Soak seed 327686334 (full run): the mirror recorded the empty canvas; a sync then wrote node "a" to disk and a
+	// remote device deleted it, before the mirror caught up. After the wipe the CRDT is back at the mirror's hash
+	// (empty), which reads as "the CRDT side is unchanged, the user added a".
+	const w = await booted();
+	const id = w.log.remoteCreate(P("board.canvas"), canvas([]));
+	await w.sync();
+	await w.writeSyncedMirror();
+	const withA = parseCanvasText(canvas([textNode("a", "Alpha")]));
+	assert.equal(withA.kind, "valid");
+	if (withA.kind !== "valid") return;
+	w.log.remoteEditCanvas(id, (d) => applyCanvas(d, "remote", rankCanvasInFileOrder(withA.data)));
+	await w.sync();
+	assert.ok(nodeOf(disk(w, "board.canvas"), "a"));
+	w.log.remoteEditCanvas(id, (d) => d.getMap<unknown>("nodes").delete("a"));
+	await w.wipeAndRebootFromMirror({ staleMirror: true });
+	await w.sync();
+	assert.equal(nodeOf(parseCanvas(w.log.canvasText(id)!), "a"), undefined, "the deleted node is not revived in the CRDT");
+	assert.equal(nodeOf(disk(w, "board.canvas"), "a"), undefined, "nor on disk");
+	assert.equal(w.conflictCopies().length, 1);
+});

@@ -170,15 +170,11 @@ export class World {
 	/**
 	 * IndexedDB lost, side-file mirrors kept (DESIGN §i.5): the synced mirror is written to `side` (the held-text files
 	 * are there already, heldMirror), the DB is deleted, the process dies, recovery imports the mirror into a fresh DB
-	 * as the vault runtime does, and the engine boots on it. The log's committed state stays (the relay).
+	 * as the vault runtime does, and the engine boots on it. The log's committed state stays (the relay). staleMirror: the
+	 * mirror is the one an earlier writeSyncedMirror left (the debounced write had not caught up when the DB died).
 	 */
-	async wipeAndRebootFromMirror(): Promise<Reconciler> {
-		const store = this.r.ctx.store;
-		const writer = new SyncedMirrorWriter({
-			side: this.side, hash: refHashPort, clock: this.clock, identity: () => WORLD_IDENTITY, entries: () => store.synced.values(), nsCoversSeq: () => 0 as Seq,
-		});
-		writer.markDirty();
-		await writer.flush();
+	async wipeAndRebootFromMirror(o: { readonly staleMirror?: boolean } = {}): Promise<Reconciler> {
+		if (!o.staleMirror) await this.writeSyncedMirror();
 		await this.heldMirror?.idle();
 		const pk = this.r.ctx.pk;
 		this.storage.crash();
@@ -186,6 +182,23 @@ export class World {
 		const db = await this.storage.open<DiskSchema>(DB, DB_SCHEMA_VERSION, STORE_SPECS);
 		await importSyncedMirror({ db, side: this.side, hash: refHashPort, identity: WORLD_IDENTITY, pathKey: pk, nowMs: this.clock.now() });
 		db.close();
+		return this.crashAndReboot();
+	}
+
+	/** Writes the synced mirror of the store as it is now (wipeAndRebootFromMirror({ staleMirror }) imports it later). */
+	async writeSyncedMirror(): Promise<void> {
+		const store = this.r.ctx.store;
+		const writer = new SyncedMirrorWriter({
+			side: this.side, hash: refHashPort, clock: this.clock, identity: () => WORLD_IDENTITY, entries: () => store.synced.values(), nsCoversSeq: () => 0 as Seq,
+		});
+		writer.markDirty();
+		await writer.flush();
+	}
+
+	/** IndexedDB lost with its side-file mirrors (or before the mirror caught up): a fresh DB, no sync points. */
+	async wipeAndRebootWithoutMirror(): Promise<Reconciler> {
+		this.storage.crash();
+		await this.storage.deleteDatabase(DB);
 		return this.crashAndReboot();
 	}
 
