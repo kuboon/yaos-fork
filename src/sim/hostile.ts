@@ -248,6 +248,12 @@ export class HostileDevice {
 			this.session = r.session;
 			this.closed = false;
 			const session = r.session;
+			// A new vault epoch (a reset or restore): its held frames were built against the old epoch's ns (a create of
+			// a docId that existed there is a valid create here), and no client resends them across (the migration drops
+			// what it had not sent). Resent, the "create of an existing docId" left a live body-less entry in the new
+			// epoch that every device waited on (sim hostile seed 728951616).
+			if (this.epoch !== null && session.vaultEpoch !== this.epoch) this.unreceipted.clear();
+			this.epoch = session.vaultEpoch;
 			session.onEvent((ev) => {
 				if (ev.t === "closed") {
 					this.stats.actions[`closed:${ev.code}`] = (this.stats.actions[`closed:${ev.code}`] ?? 0) + 1;
@@ -269,6 +275,8 @@ export class HostileDevice {
 	}
 
 	private closed = true;
+	/** The vault epoch of the last session (its frames belong to it). */
+	private epoch: string | null = null;
 	/** Frames it means to land (ns frames, outOfOrder halves): resent after a reconnect until receipted or refused. */
 	private readonly unreceipted = new Map<ClientFrameId, { readonly stream: StreamName; readonly payload: Uint8Array }>();
 	private resendDue = false;
