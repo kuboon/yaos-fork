@@ -1,0 +1,1798 @@
+{
+	"seed": 318964063,
+	"config": {
+		"devices": 5,
+		"faults": "DEFAULT_FAULTS",
+		"seed": 318964063
+	},
+	"violations": [
+		{
+			"inv": "canvas",
+			"detail": "reorder of d79n0 to the front on E at step 177 lost against eadn0 in canvas/c1.canvas"
+		}
+	],
+	"note": "Nightly sweep (5 devices), seed 318964063, same mechanism. An oracle gap, not an engine bug: another device moved a node past this reorder's node alone (an adjacent swap). Its file order cannot tell that from this node moved the other way, and the rank reconcile kept the run that re-ranks this node, racing the reorder's rank. invariants.ts now exempts a reorder whose node another device's reorder passed alone (ReorderIntent.passed).",
+	"minimizedPlan": [
+		{
+			"i": 0,
+			"gapMs": 874,
+			"fault": {
+				"t": "socketDrop",
+				"dev": 3,
+				"code": 1011
+			}
+		},
+		{
+			"i": 1,
+			"gapMs": 1455,
+			"user": {
+				"t": "open",
+				"dev": 0,
+				"file": 0.5412375121377409
+			}
+		},
+		{
+			"i": 120,
+			"gapMs": 60,
+			"canvas": {
+				"t": "cAddNode",
+				"dev": 4,
+				"file": 0.330433021299541,
+				"kind": "text",
+				"seed": 662766879
+			}
+		},
+		{
+			"i": 2,
+			"gapMs": 1352,
+			"user": {
+				"t": "create",
+				"dev": 3,
+				"name": 7
+			}
+		},
+		{
+			"i": 121,
+			"gapMs": 57,
+			"canvas": {
+				"t": "cMove",
+				"dev": 3,
+				"file": 0.42645444977097213,
+				"node": 0.6516199235338718
+			}
+		},
+		{
+			"i": 3,
+			"gapMs": 411,
+			"user": {
+				"t": "close",
+				"dev": 0,
+				"view": 0.4254036562051624
+			}
+		},
+		{
+			"i": 122,
+			"gapMs": 133,
+			"canvas": {
+				"t": "cText",
+				"dev": 3,
+				"file": 0.2086848383769393,
+				"node": 0.5130294670816511,
+				"pos": 0.08193713147193193,
+				"del": true
+			}
+		},
+		{
+			"i": 4,
+			"gapMs": 1418,
+			"fault": {
+				"t": "offline",
+				"dev": 1,
+				"durationMs": 65330
+			}
+		},
+		{
+			"i": 123,
+			"gapMs": 153,
+			"canvas": {
+				"t": "cText",
+				"dev": 2,
+				"file": 0.6394153402652591,
+				"node": 0.6776224614586681,
+				"pos": 0.6233719394076616,
+				"del": false
+			}
+		},
+		{
+			"i": 5,
+			"gapMs": 872,
+			"user": {
+				"t": "diskInsert",
+				"dev": 0,
+				"file": 0.7804373633116484,
+				"pos": 0.5606364274863154,
+				"by": "external"
+			}
+		},
+		{
+			"i": 6,
+			"gapMs": 756,
+			"user": {
+				"t": "rename",
+				"dev": 1,
+				"file": 0.26524180150590837,
+				"name": 7
+			}
+		},
+		{
+			"i": 124,
+			"gapMs": 332,
+			"canvas": {
+				"t": "cMove",
+				"dev": 4,
+				"file": 0.5459809224121273,
+				"node": 0.1080147442407906
+			}
+		},
+		{
+			"i": 7,
+			"gapMs": 451,
+			"user": {
+				"t": "create",
+				"dev": 3,
+				"name": 0
+			}
+		},
+		{
+			"i": 8,
+			"gapMs": 576,
+			"user": {
+				"t": "type",
+				"dev": 3,
+				"view": 0.6693503081332892,
+				"pos": 0.22449919837526977,
+				"nl": false
+			}
+		},
+		{
+			"i": 9,
+			"gapMs": 775,
+			"fault": {
+				"t": "clockSkew",
+				"dev": 3,
+				"deltaMs": -75118303
+			}
+		},
+		{
+			"i": 10,
+			"gapMs": 223,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 2,
+				"file": 0.7897596494294703,
+				"pick": 0.3807557080872357,
+				"by": "user"
+			}
+		},
+		{
+			"i": 125,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 0,
+				"name": 1,
+				"size": 262
+			}
+		},
+		{
+			"i": 11,
+			"gapMs": 1387,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.7796718163881451,
+				"pos": 0.5596353288274258,
+				"nl": true
+			}
+		},
+		{
+			"i": 126,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 2,
+				"name": 2,
+				"size": 1971
+			}
+		},
+		{
+			"i": 12,
+			"gapMs": 182,
+			"user": {
+				"t": "switch",
+				"dev": 1,
+				"view": 0.9552116328850389,
+				"file": 0.4972898450214416
+			}
+		},
+		{
+			"i": 13,
+			"gapMs": 590,
+			"user": {
+				"t": "open",
+				"dev": 2,
+				"file": 0.464987900108099
+			}
+		},
+		{
+			"i": 14,
+			"gapMs": 446,
+			"user": {
+				"t": "close",
+				"dev": 1,
+				"view": 0.21374903107061982
+			}
+		},
+		{
+			"i": 127,
+			"gapMs": 443,
+			"canvas": {
+				"t": "cExtra",
+				"dev": 0,
+				"file": 0.9298209878616035,
+				"target": "node",
+				"pick": 0.8994113113731146,
+				"key": 3,
+				"del": false
+			}
+		},
+		{
+			"i": 15,
+			"gapMs": 157,
+			"user": {
+				"t": "close",
+				"dev": 4,
+				"view": 0.3754333686083555
+			}
+		},
+		{
+			"i": 128,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 3,
+				"name": 1,
+				"size": 2771
+			}
+		},
+		{
+			"i": 16,
+			"gapMs": 619,
+			"fault": {
+				"t": "engineCrash",
+				"dev": 3
+			}
+		},
+		{
+			"i": 129,
+			"gapMs": 0,
+			"user": {
+				"t": "attachDelete",
+				"dev": 0,
+				"file": 0.776499634841457
+			}
+		},
+		{
+			"i": 17,
+			"gapMs": 1136,
+			"user": {
+				"t": "type",
+				"dev": 4,
+				"view": 0.5129624598193914,
+				"pos": 0.05756218219175935,
+				"nl": false
+			}
+		},
+		{
+			"i": 18,
+			"gapMs": 165,
+			"fault": {
+				"t": "ioFail",
+				"dev": 2,
+				"ops": 1
+			}
+		},
+		{
+			"i": 19,
+			"gapMs": 1462,
+			"user": {
+				"t": "deleteToken",
+				"dev": 3,
+				"view": 0.7026120473165065,
+				"pick": 0.9487004850525409
+			}
+		},
+		{
+			"i": 20,
+			"gapMs": 381,
+			"user": {
+				"t": "type",
+				"dev": 3,
+				"view": 0.31062237336300313,
+				"pos": 0.2946035300847143,
+				"nl": false
+			}
+		},
+		{
+			"i": 130,
+			"gapMs": 437,
+			"canvas": {
+				"t": "cMove",
+				"dev": 4,
+				"file": 0.9820404169149697,
+				"node": 0.5076584939379245
+			}
+		},
+		{
+			"i": 21,
+			"gapMs": 948,
+			"user": {
+				"t": "diskInsert",
+				"dev": 2,
+				"file": 0.9549285916145891,
+				"pos": 0.9461127368267626,
+				"by": "user"
+			}
+		},
+		{
+			"i": 22,
+			"gapMs": 1083,
+			"fault": {
+				"t": "httpFail",
+				"durationMs": 18201
+			}
+		},
+		{
+			"i": 23,
+			"gapMs": 1367,
+			"user": {
+				"t": "deleteToken",
+				"dev": 1,
+				"view": 0.008015790488570929,
+				"pick": 0.0961335205938667
+			}
+		},
+		{
+			"i": 131,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 2,
+				"name": 1,
+				"size": 2795
+			}
+		},
+		{
+			"i": 132,
+			"gapMs": 327,
+			"canvas": {
+				"t": "cText",
+				"dev": 1,
+				"file": 0.047356256283819675,
+				"node": 0.8032272707205266,
+				"pos": 0.9001059257425368,
+				"del": false
+			}
+		},
+		{
+			"i": 24,
+			"gapMs": 835,
+			"fault": {
+				"t": "ioFail",
+				"dev": 2,
+				"ops": 1
+			}
+		},
+		{
+			"i": 25,
+			"gapMs": 1037,
+			"user": {
+				"t": "diskInsert",
+				"dev": 4,
+				"file": 0.14654280408285558,
+				"pos": 0.8083527856506407,
+				"by": "external"
+			}
+		},
+		{
+			"i": 133,
+			"gapMs": 415,
+			"canvas": {
+				"t": "cDeleteNode",
+				"dev": 2,
+				"file": 0.6437484414782375,
+				"node": 0.8634503006469458
+			}
+		},
+		{
+			"i": 26,
+			"gapMs": 317,
+			"user": {
+				"t": "type",
+				"dev": 3,
+				"view": 0.43362830742262304,
+				"pos": 0.00019400101155042648,
+				"nl": true
+			}
+		},
+		{
+			"i": 27,
+			"gapMs": 1257,
+			"fault": {
+				"t": "appCrash",
+				"dev": 2,
+				"downMs": 19676
+			}
+		},
+		{
+			"i": 28,
+			"gapMs": 0,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 3,
+				"file": 0.04863226739689708,
+				"pick": 0.6261182965245098,
+				"by": "user"
+			}
+		},
+		{
+			"i": 134,
+			"gapMs": 454,
+			"canvas": {
+				"t": "cDeleteEdge",
+				"dev": 3,
+				"file": 0.7298331502825022,
+				"edge": 0.34693321492522955
+			}
+		},
+		{
+			"i": 29,
+			"gapMs": 1254,
+			"fault": {
+				"t": "engineCrash",
+				"dev": 2
+			}
+		},
+		{
+			"i": 30,
+			"gapMs": 1204,
+			"user": {
+				"t": "switch",
+				"dev": 4,
+				"view": 0.020597877679392695,
+				"file": 0.6784961267840117
+			}
+		},
+		{
+			"i": 135,
+			"gapMs": 0,
+			"user": {
+				"t": "setting",
+				"dev": 1,
+				"file": 2,
+				"key": 2,
+				"del": false
+			}
+		},
+		{
+			"i": 136,
+			"gapMs": 368,
+			"canvas": {
+				"t": "cAddEdge",
+				"dev": 0,
+				"file": 0.8911101501435041,
+				"from": 0.1278072358109057,
+				"to": 0.769321498926729,
+				"seed": 1246069710
+			}
+		},
+		{
+			"i": 31,
+			"gapMs": 354,
+			"user": {
+				"t": "close",
+				"dev": 0,
+				"view": 0.1969399603549391
+			}
+		},
+		{
+			"i": 32,
+			"gapMs": 484,
+			"user": {
+				"t": "close",
+				"dev": 4,
+				"view": 0.6673334350343794
+			}
+		},
+		{
+			"i": 137,
+			"gapMs": 212,
+			"canvas": {
+				"t": "cEdge",
+				"dev": 1,
+				"file": 0.4455804033204913,
+				"edge": 0.8004913122858852,
+				"what": "sides",
+				"pick": 0.9058735452126712
+			}
+		},
+		{
+			"i": 33,
+			"gapMs": 12,
+			"user": {
+				"t": "open",
+				"dev": 3,
+				"file": 0.4832727243192494
+			}
+		},
+		{
+			"i": 138,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 4,
+				"name": 0,
+				"size": 2385
+			}
+		},
+		{
+			"i": 34,
+			"gapMs": 442,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.5552514342125505,
+				"pos": 0.9788482780568302,
+				"nl": false
+			}
+		},
+		{
+			"i": 139,
+			"gapMs": 0,
+			"user": {
+				"t": "setting",
+				"dev": 3,
+				"file": 2,
+				"key": 0,
+				"del": false
+			}
+		},
+		{
+			"i": 35,
+			"gapMs": 236,
+			"user": {
+				"t": "diskInsert",
+				"dev": 2,
+				"file": 0.46894841617904603,
+				"pos": 0.0015929313376545906,
+				"by": "user"
+			}
+		},
+		{
+			"i": 36,
+			"gapMs": 340,
+			"fault": {
+				"t": "socketDrop",
+				"dev": 2,
+				"code": 1001
+			}
+		},
+		{
+			"i": 37,
+			"gapMs": 1358,
+			"user": {
+				"t": "open",
+				"dev": 2,
+				"file": 0.9873830978758633
+			}
+		},
+		{
+			"i": 38,
+			"gapMs": 1222,
+			"user": {
+				"t": "diskInsert",
+				"dev": 2,
+				"file": 0.5275565532501787,
+				"pos": 0.7710992016363889,
+				"by": "user"
+			}
+		},
+		{
+			"i": 39,
+			"gapMs": 588,
+			"user": {
+				"t": "type",
+				"dev": 4,
+				"view": 0.5739909291733056,
+				"pos": 0.42654740274883807,
+				"nl": true
+			}
+		},
+		{
+			"i": 40,
+			"gapMs": 407,
+			"user": {
+				"t": "type",
+				"dev": 1,
+				"view": 0.6556940719019622,
+				"pos": 0.5118225994519889,
+				"nl": true
+			}
+		},
+		{
+			"i": 41,
+			"gapMs": 346,
+			"user": {
+				"t": "type",
+				"dev": 0,
+				"view": 0.15830427315086126,
+				"pos": 0.5350798494182527,
+				"nl": false
+			}
+		},
+		{
+			"i": 42,
+			"gapMs": 1157,
+			"user": {
+				"t": "type",
+				"dev": 1,
+				"view": 0.413491596467793,
+				"pos": 0.013358867494389415,
+				"nl": false
+			}
+		},
+		{
+			"i": 140,
+			"gapMs": 140,
+			"canvas": {
+				"t": "cExtra",
+				"dev": 3,
+				"file": 0.2751273368485272,
+				"target": "node",
+				"pick": 0.305980920791626,
+				"key": 2,
+				"del": true
+			}
+		},
+		{
+			"i": 43,
+			"gapMs": 378,
+			"user": {
+				"t": "mode",
+				"dev": 1,
+				"view": 0.7849657472688705
+			}
+		},
+		{
+			"i": 141,
+			"gapMs": 179,
+			"canvas": {
+				"t": "cFileRef",
+				"dev": 2,
+				"file": 0.1292508258484304,
+				"node": 0.4800995080731809,
+				"pick": 0.6208946260157973
+			}
+		},
+		{
+			"i": 44,
+			"gapMs": 185,
+			"user": {
+				"t": "open",
+				"dev": 1,
+				"file": 0.12520553707145154
+			}
+		},
+		{
+			"i": 45,
+			"gapMs": 121,
+			"user": {
+				"t": "diskInsert",
+				"dev": 2,
+				"file": 0.42346155224367976,
+				"pos": 0.9813916329294443,
+				"by": "external"
+			}
+		},
+		{
+			"i": 46,
+			"gapMs": 255,
+			"user": {
+				"t": "create",
+				"dev": 0,
+				"name": 0
+			}
+		},
+		{
+			"i": 47,
+			"gapMs": 792,
+			"user": {
+				"t": "deleteToken",
+				"dev": 3,
+				"view": 0.5009922604076564,
+				"pick": 0.37502506258897483
+			}
+		},
+		{
+			"i": 142,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 3,
+				"name": 2,
+				"size": 1056
+			}
+		},
+		{
+			"i": 48,
+			"gapMs": 445,
+			"user": {
+				"t": "type",
+				"dev": 4,
+				"view": 0.3990002570208162,
+				"pos": 0.1858279570005834,
+				"nl": false
+			}
+		},
+		{
+			"i": 49,
+			"gapMs": 1180,
+			"user": {
+				"t": "close",
+				"dev": 4,
+				"view": 0.9457956808619201
+			}
+		},
+		{
+			"i": 143,
+			"gapMs": 360,
+			"canvas": {
+				"t": "cRewrite",
+				"dev": 2,
+				"file": 0.047997336369007826,
+				"seed": 1468499278,
+				"move": true,
+				"sort": true,
+				"by": "external"
+			}
+		},
+		{
+			"i": 50,
+			"gapMs": 1251,
+			"user": {
+				"t": "mode",
+				"dev": 3,
+				"view": 0.9769704109057784
+			}
+		},
+		{
+			"i": 51,
+			"gapMs": 917,
+			"fault": {
+				"t": "ioFail",
+				"dev": 4,
+				"ops": 2
+			}
+		},
+		{
+			"i": 52,
+			"gapMs": 1329,
+			"user": {
+				"t": "create",
+				"dev": 3,
+				"name": 4
+			}
+		},
+		{
+			"i": 53,
+			"gapMs": 1127,
+			"user": {
+				"t": "close",
+				"dev": 4,
+				"view": 0.22768862592056394
+			}
+		},
+		{
+			"i": 54,
+			"gapMs": 1115,
+			"user": {
+				"t": "deleteToken",
+				"dev": 4,
+				"view": 0.41367474012076855,
+				"pick": 0.5091864136047661
+			}
+		},
+		{
+			"i": 55,
+			"gapMs": 35,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.16702636773698032,
+				"pos": 0.7946566597092897,
+				"nl": true
+			}
+		},
+		{
+			"i": 56,
+			"gapMs": 12,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.5559734960552305,
+				"pos": 0.6366855602245778,
+				"nl": false
+			}
+		},
+		{
+			"i": 57,
+			"gapMs": 1471,
+			"fault": {
+				"t": "offline",
+				"dev": 4,
+				"durationMs": 25752
+			}
+		},
+		{
+			"i": 58,
+			"gapMs": 1298,
+			"user": {
+				"t": "close",
+				"dev": 2,
+				"view": 0.8237290140241385
+			}
+		},
+		{
+			"i": 144,
+			"gapMs": 451,
+			"canvas": {
+				"t": "cDeleteNode",
+				"dev": 4,
+				"file": 0.5862453512381762,
+				"node": 0.046514637069776654
+			}
+		},
+		{
+			"i": 59,
+			"gapMs": 835,
+			"user": {
+				"t": "diskInsert",
+				"dev": 0,
+				"file": 0.698113082209602,
+				"pos": 0.6939969519153237,
+				"by": "external"
+			}
+		},
+		{
+			"i": 60,
+			"gapMs": 424,
+			"user": {
+				"t": "type",
+				"dev": 1,
+				"view": 0.7317256706301123,
+				"pos": 0.7562763788737357,
+				"nl": true
+			}
+		},
+		{
+			"i": 61,
+			"gapMs": 534,
+			"user": {
+				"t": "open",
+				"dev": 0,
+				"file": 0.6016508212778717
+			}
+		},
+		{
+			"i": 62,
+			"gapMs": 531,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 2,
+				"file": 0.03326834016479552,
+				"pick": 0.7208883340936154,
+				"by": "external"
+			}
+		},
+		{
+			"i": 63,
+			"gapMs": 942,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.26309519982896745,
+				"pos": 0.6529578268527985,
+				"nl": true
+			}
+		},
+		{
+			"i": 64,
+			"gapMs": 11,
+			"user": {
+				"t": "type",
+				"dev": 4,
+				"view": 0.8327163648791611,
+				"pos": 0.7447146405465901,
+				"nl": false
+			}
+		},
+		{
+			"i": 65,
+			"gapMs": 1381,
+			"user": {
+				"t": "create",
+				"dev": 1,
+				"name": 1
+			}
+		},
+		{
+			"i": 145,
+			"gapMs": 466,
+			"canvas": {
+				"t": "cRewrite",
+				"dev": 2,
+				"file": 0.6325479669030756,
+				"seed": 1527332757,
+				"move": true,
+				"sort": false,
+				"by": "user"
+			}
+		},
+		{
+			"i": 66,
+			"gapMs": 1295,
+			"fault": {
+				"t": "socketDrop",
+				"dev": 0,
+				"code": 1006
+			}
+		},
+		{
+			"i": 67,
+			"gapMs": 990,
+			"user": {
+				"t": "delete",
+				"dev": 3,
+				"file": 0.5079675929155201
+			}
+		},
+		{
+			"i": 68,
+			"gapMs": 976,
+			"user": {
+				"t": "diskInsert",
+				"dev": 2,
+				"file": 0.6951353438198566,
+				"pos": 0.8918088010977954,
+				"by": "external"
+			}
+		},
+		{
+			"i": 146,
+			"gapMs": 0,
+			"user": {
+				"t": "setting",
+				"dev": 1,
+				"file": 0,
+				"key": 0,
+				"del": false
+			}
+		},
+		{
+			"i": 69,
+			"gapMs": 531,
+			"user": {
+				"t": "deleteToken",
+				"dev": 1,
+				"view": 0.5993126058019698,
+				"pick": 0.13668848504312336
+			}
+		},
+		{
+			"i": 70,
+			"gapMs": 1107,
+			"fault": {
+				"t": "background",
+				"dev": 4,
+				"event": "pagehide",
+				"durationMs": 29648
+			}
+		},
+		{
+			"i": 147,
+			"gapMs": 36,
+			"canvas": {
+				"t": "cAddEdge",
+				"dev": 2,
+				"file": 0.07158207823522389,
+				"from": 0.8032026924192905,
+				"to": 0.24675557180307806,
+				"seed": 1334520711
+			}
+		},
+		{
+			"i": 71,
+			"gapMs": 912,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 4,
+				"file": 0.26478140568360686,
+				"pick": 0.10455342824570835,
+				"by": "external"
+			}
+		},
+		{
+			"i": 72,
+			"gapMs": 832,
+			"user": {
+				"t": "diskInsert",
+				"dev": 3,
+				"file": 0.53495112946257,
+				"pos": 0.5722737102769315,
+				"by": "user"
+			}
+		},
+		{
+			"i": 148,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 3,
+				"name": 3,
+				"size": 3325
+			}
+		},
+		{
+			"i": 73,
+			"gapMs": 771,
+			"user": {
+				"t": "type",
+				"dev": 0,
+				"view": 0.44996409327723086,
+				"pos": 0.43144622491672635,
+				"nl": true
+			}
+		},
+		{
+			"i": 74,
+			"gapMs": 640,
+			"fault": {
+				"t": "engineCrash",
+				"dev": 4
+			}
+		},
+		{
+			"i": 149,
+			"gapMs": 105,
+			"canvas": {
+				"t": "cAddEdge",
+				"dev": 1,
+				"file": 0.619160506175831,
+				"from": 0.6651675053872168,
+				"to": 0.1696484531275928,
+				"seed": 32521172
+			}
+		},
+		{
+			"i": 75,
+			"gapMs": 593,
+			"user": {
+				"t": "rename",
+				"dev": 3,
+				"file": 0.29869313281960785,
+				"name": 5
+			}
+		},
+		{
+			"i": 76,
+			"gapMs": 1458,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.7753768344409764,
+				"pos": 0.2511474322527647,
+				"nl": false
+			}
+		},
+		{
+			"i": 150,
+			"gapMs": 59,
+			"canvas": {
+				"t": "cAddEdge",
+				"dev": 1,
+				"file": 0.7004612849559635,
+				"from": 0.07626320701092482,
+				"to": 0.570151204476133,
+				"seed": 1623198705
+			}
+		},
+		{
+			"i": 77,
+			"gapMs": 286,
+			"user": {
+				"t": "deleteToken",
+				"dev": 0,
+				"view": 0.5580842096824199,
+				"pick": 0.12257954874075949
+			}
+		},
+		{
+			"i": 78,
+			"gapMs": 66,
+			"user": {
+				"t": "diskInsert",
+				"dev": 3,
+				"file": 0.887570851482451,
+				"pos": 0.32411424932070076,
+				"by": "external"
+			}
+		},
+		{
+			"i": 79,
+			"gapMs": 374,
+			"user": {
+				"t": "diskInsert",
+				"dev": 4,
+				"file": 0.3335868262220174,
+				"pos": 0.35787796531803906,
+				"by": "external"
+			}
+		},
+		{
+			"i": 151,
+			"gapMs": 481,
+			"canvas": {
+				"t": "cText",
+				"dev": 2,
+				"file": 0.27061302680522203,
+				"node": 0.09154830407351255,
+				"pos": 0.917287593241781,
+				"del": false
+			}
+		},
+		{
+			"i": 80,
+			"gapMs": 269,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 2,
+				"file": 0.9015865677502006,
+				"pick": 0.6448895323555917,
+				"by": "user"
+			}
+		},
+		{
+			"i": 81,
+			"gapMs": 1500,
+			"user": {
+				"t": "diskInsert",
+				"dev": 4,
+				"file": 0.23141799471341074,
+				"pos": 0.3320069764740765,
+				"by": "external"
+			}
+		},
+		{
+			"i": 82,
+			"gapMs": 619,
+			"fault": {
+				"t": "background",
+				"dev": 0,
+				"event": "freeze",
+				"durationMs": 749
+			}
+		},
+		{
+			"i": 152,
+			"gapMs": 389,
+			"canvas": {
+				"t": "cRename",
+				"dev": 0,
+				"file": 0.18722377205267549,
+				"name": 4,
+				"folder": false
+			}
+		},
+		{
+			"i": 83,
+			"gapMs": 703,
+			"user": {
+				"t": "switch",
+				"dev": 3,
+				"view": 0.4637415832839906,
+				"file": 0.2895192645955831
+			}
+		},
+		{
+			"i": 153,
+			"gapMs": 242,
+			"canvas": {
+				"t": "cReorder",
+				"dev": 1,
+				"file": 0.7979222650174052,
+				"node": 0.3370190989226103,
+				"front": false
+			}
+		},
+		{
+			"i": 84,
+			"gapMs": 1259,
+			"user": {
+				"t": "type",
+				"dev": 3,
+				"view": 0.14828120870515704,
+				"pos": 0.1769173820503056,
+				"nl": false
+			}
+		},
+		{
+			"i": 154,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 3,
+				"name": 0,
+				"size": 2411
+			}
+		},
+		{
+			"i": 85,
+			"gapMs": 108,
+			"user": {
+				"t": "diskInsert",
+				"dev": 4,
+				"file": 0.6488956471439451,
+				"pos": 0.9312432154547423,
+				"by": "user"
+			}
+		},
+		{
+			"i": 86,
+			"gapMs": 1115,
+			"user": {
+				"t": "type",
+				"dev": 3,
+				"view": 0.21578199206851423,
+				"pos": 0.009961565490812063,
+				"nl": false
+			}
+		},
+		{
+			"i": 155,
+			"gapMs": 77,
+			"canvas": {
+				"t": "cCreate",
+				"dev": 4,
+				"name": 2,
+				"nodes": 4,
+				"seed": 484125528
+			}
+		},
+		{
+			"i": 87,
+			"gapMs": 757,
+			"fault": {
+				"t": "offline",
+				"dev": 0,
+				"durationMs": 67837
+			}
+		},
+		{
+			"i": 156,
+			"gapMs": 411,
+			"canvas": {
+				"t": "cProps",
+				"dev": 1,
+				"file": 0.5855426988564432,
+				"node": 0.9069901653565466
+			}
+		},
+		{
+			"i": 88,
+			"gapMs": 683,
+			"user": {
+				"t": "deleteToken",
+				"dev": 2,
+				"view": 0.382319494150579,
+				"pick": 0.2613951552193612
+			}
+		},
+		{
+			"i": 157,
+			"gapMs": 272,
+			"canvas": {
+				"t": "cDeleteNode",
+				"dev": 1,
+				"file": 0.5113312401808798,
+				"node": 0.06740994518622756
+			}
+		},
+		{
+			"i": 89,
+			"gapMs": 26,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 4,
+				"file": 0.09110403037630022,
+				"pick": 0.7705136232543737,
+				"by": "external"
+			}
+		},
+		{
+			"i": 90,
+			"gapMs": 1293,
+			"user": {
+				"t": "diskInsert",
+				"dev": 1,
+				"file": 0.7127514483872801,
+				"pos": 0.8995797282550484,
+				"by": "external"
+			}
+		},
+		{
+			"i": 91,
+			"gapMs": 1385,
+			"user": {
+				"t": "type",
+				"dev": 0,
+				"view": 0.4753493801690638,
+				"pos": 0.3521942801307887,
+				"nl": false
+			}
+		},
+		{
+			"i": 92,
+			"gapMs": 1190,
+			"user": {
+				"t": "create",
+				"dev": 1,
+				"name": 0
+			}
+		},
+		{
+			"i": 158,
+			"gapMs": 32,
+			"canvas": {
+				"t": "cMove",
+				"dev": 3,
+				"file": 0.5697560880798846,
+				"node": 0.8584861767012626
+			}
+		},
+		{
+			"i": 97,
+			"gapMs": 704,
+			"user": {
+				"t": "diskInsert",
+				"dev": 1,
+				"file": 0.2195545919239521,
+				"pos": 0.4803685562219471,
+				"by": "external"
+			}
+		},
+		{
+			"i": 161,
+			"gapMs": 487,
+			"canvas": {
+				"t": "cAddNode",
+				"dev": 2,
+				"file": 0.20797845791094005,
+				"kind": "text",
+				"seed": 907425051
+			}
+		},
+		{
+			"i": 98,
+			"gapMs": 665,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 2,
+				"file": 0.3795610659290105,
+				"pick": 0.7687997871544212,
+				"by": "external"
+			}
+		},
+		{
+			"i": 162,
+			"gapMs": 249,
+			"canvas": {
+				"t": "cText",
+				"dev": 0,
+				"file": 0.7874194099567831,
+				"node": 0.3934549253899604,
+				"pos": 0.003867320716381073,
+				"del": false
+			}
+		},
+		{
+			"i": 99,
+			"gapMs": 123,
+			"user": {
+				"t": "type",
+				"dev": 0,
+				"view": 0.7041363571770489,
+				"pos": 0.9435685819480568,
+				"nl": false
+			}
+		},
+		{
+			"i": 163,
+			"gapMs": 362,
+			"canvas": {
+				"t": "cReorder",
+				"dev": 1,
+				"file": 0.6035229032859206,
+				"node": 0.5072676301933825,
+				"front": true
+			}
+		},
+		{
+			"i": 100,
+			"gapMs": 492,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 1,
+				"file": 0.29690211615525186,
+				"pick": 0.8314235473517329,
+				"by": "external"
+			}
+		},
+		{
+			"i": 164,
+			"gapMs": 296,
+			"canvas": {
+				"t": "cResize",
+				"dev": 4,
+				"file": 0.19857007823884487,
+				"node": 0.03319310839287937
+			}
+		},
+		{
+			"i": 101,
+			"gapMs": 867,
+			"user": {
+				"t": "switch",
+				"dev": 2,
+				"view": 0.04163132328540087,
+				"file": 0.9085167546290904
+			}
+		},
+		{
+			"i": 165,
+			"gapMs": 0,
+			"user": {
+				"t": "setting",
+				"dev": 4,
+				"file": 1,
+				"key": 2,
+				"del": false
+			}
+		},
+		{
+			"i": 166,
+			"gapMs": 93,
+			"canvas": {
+				"t": "cMove",
+				"dev": 0,
+				"file": 0.9252640928607434,
+				"node": 0.41933356365188956
+			}
+		},
+		{
+			"i": 102,
+			"gapMs": 70,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.6104611908085644,
+				"pos": 0.6553701879456639,
+				"nl": false
+			}
+		},
+		{
+			"i": 167,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 4,
+				"name": 2,
+				"size": 1327
+			}
+		},
+		{
+			"i": 103,
+			"gapMs": 1103,
+			"user": {
+				"t": "diskInsert",
+				"dev": 2,
+				"file": 0.18817837163805962,
+				"pos": 0.1420334994327277,
+				"by": "external"
+			}
+		},
+		{
+			"i": 104,
+			"gapMs": 1434,
+			"user": {
+				"t": "open",
+				"dev": 2,
+				"file": 0.7372571753803641
+			}
+		},
+		{
+			"i": 168,
+			"gapMs": 0,
+			"user": {
+				"t": "attach",
+				"dev": 4,
+				"name": 1,
+				"size": 2910
+			}
+		},
+		{
+			"i": 169,
+			"gapMs": 198,
+			"canvas": {
+				"t": "cReorder",
+				"dev": 0,
+				"file": 0.0876586944796145,
+				"node": 0.025306892348453403,
+				"front": true
+			}
+		},
+		{
+			"i": 105,
+			"gapMs": 125,
+			"user": {
+				"t": "deleteToken",
+				"dev": 3,
+				"view": 0.8253602043259889,
+				"pick": 0.008433700073510408
+			}
+		},
+		{
+			"i": 170,
+			"gapMs": 0,
+			"user": {
+				"t": "setting",
+				"dev": 1,
+				"file": 2,
+				"key": 1,
+				"del": false
+			}
+		},
+		{
+			"i": 106,
+			"gapMs": 342,
+			"user": {
+				"t": "diskInsert",
+				"dev": 3,
+				"file": 0.610412129200995,
+				"pos": 0.4228514386340976,
+				"by": "external"
+			}
+		},
+		{
+			"i": 107,
+			"gapMs": 90,
+			"user": {
+				"t": "mode",
+				"dev": 0,
+				"view": 0.8865038540679961
+			}
+		},
+		{
+			"i": 108,
+			"gapMs": 1384,
+			"user": {
+				"t": "type",
+				"dev": 0,
+				"view": 0.960329954745248,
+				"pos": 0.7594943086151034,
+				"nl": false
+			}
+		},
+		{
+			"i": 109,
+			"gapMs": 643,
+			"user": {
+				"t": "diskInsert",
+				"dev": 2,
+				"file": 0.7968704802915454,
+				"pos": 0.3463877788744867,
+				"by": "external"
+			}
+		},
+		{
+			"i": 110,
+			"gapMs": 1416,
+			"user": {
+				"t": "diskInsert",
+				"dev": 4,
+				"file": 0.3725030873902142,
+				"pos": 0.9195971619337797,
+				"by": "user"
+			}
+		},
+		{
+			"i": 111,
+			"gapMs": 411,
+			"user": {
+				"t": "type",
+				"dev": 4,
+				"view": 0.9312499556690454,
+				"pos": 0.5213491842150688,
+				"nl": false
+			}
+		},
+		{
+			"i": 171,
+			"gapMs": 0,
+			"user": {
+				"t": "setting",
+				"dev": 1,
+				"file": 3,
+				"key": 0,
+				"del": true
+			}
+		},
+		{
+			"i": 172,
+			"gapMs": 213,
+			"canvas": {
+				"t": "cDeleteNode",
+				"dev": 4,
+				"file": 0.6761618084274232,
+				"node": 0.7332019985187799
+			}
+		},
+		{
+			"i": 112,
+			"gapMs": 939,
+			"fault": {
+				"t": "background",
+				"dev": 0,
+				"event": "hidden",
+				"durationMs": 4320
+			}
+		},
+		{
+			"i": 173,
+			"gapMs": 55,
+			"canvas": {
+				"t": "cAddNode",
+				"dev": 4,
+				"file": 0.0912302101496607,
+				"kind": "file",
+				"seed": 980684275
+			}
+		},
+		{
+			"i": 113,
+			"gapMs": 582,
+			"user": {
+				"t": "open",
+				"dev": 1,
+				"file": 0.5082179580349475
+			}
+		},
+		{
+			"i": 174,
+			"gapMs": 25,
+			"canvas": {
+				"t": "cAddEdge",
+				"dev": 1,
+				"file": 0.2253924037795514,
+				"from": 0.9539778602775186,
+				"to": 0.14557004324160516,
+				"seed": 1676578916
+			}
+		},
+		{
+			"i": 114,
+			"gapMs": 883,
+			"user": {
+				"t": "diskDeleteToken",
+				"dev": 1,
+				"file": 0.5717269035521895,
+				"pick": 0.009463696274906397,
+				"by": "user"
+			}
+		},
+		{
+			"i": 115,
+			"gapMs": 1432,
+			"user": {
+				"t": "type",
+				"dev": 2,
+				"view": 0.9265342343132943,
+				"pos": 0.3844838133081794,
+				"nl": true
+			}
+		},
+		{
+			"i": 175,
+			"gapMs": 363,
+			"canvas": {
+				"t": "cAddEdge",
+				"dev": 2,
+				"file": 0.3728417311795056,
+				"from": 0.27521692542359233,
+				"to": 0.45393371349200606,
+				"seed": 675725477
+			}
+		},
+		{
+			"i": 116,
+			"gapMs": 374,
+			"user": {
+				"t": "type",
+				"dev": 3,
+				"view": 0.0030239312909543514,
+				"pos": 0.9354480262845755,
+				"nl": false
+			}
+		},
+		{
+			"i": 117,
+			"gapMs": 635,
+			"user": {
+				"t": "deleteToken",
+				"dev": 0,
+				"view": 0.9961923866067082,
+				"pick": 0.9586761705577374
+			}
+		},
+		{
+			"i": 176,
+			"gapMs": 204,
+			"canvas": {
+				"t": "cText",
+				"dev": 0,
+				"file": 0.8116824617609382,
+				"node": 0.5468905819579959,
+				"pos": 0.7296487742569298,
+				"del": false
+			}
+		},
+		{
+			"i": 118,
+			"gapMs": 1362,
+			"fault": {
+				"t": "socketDrop",
+				"dev": 3,
+				"code": 1011
+			}
+		},
+		{
+			"i": 177,
+			"gapMs": 470,
+			"canvas": {
+				"t": "cReorder",
+				"dev": 4,
+				"file": 0.0014284879434853792,
+				"node": 0.03602619585581124,
+				"front": true
+			}
+		},
+		{
+			"i": 119,
+			"gapMs": 1482,
+			"user": {
+				"t": "create",
+				"dev": 1,
+				"name": 6
+			}
+		}
+	]
+}

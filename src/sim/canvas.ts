@@ -340,6 +340,8 @@ export interface ReorderIntent {
 	readonly front: boolean;
 	/** Node ids on the canvas when it was made. */
 	readonly siblings: readonly string[];
+	/** The ones it moved past (between the node's old and new place). */
+	readonly passed: readonly string[];
 	/** The doc the file was synced as on that device (null: not synced yet). */
 	readonly doc: string | null;
 }
@@ -1182,8 +1184,10 @@ export class CanvasWorld {
 				const n = node(a.node);
 				if (!n || m.nodes.length < 2) return `skip ${tag}: nothing to reorder`;
 				const siblings = m.nodes.filter((x) => x !== n).map((x) => x.id as string);
+				const at = m.nodes.indexOf(n);
+				const passed = (a.front ? m.nodes.slice(at + 1) : m.nodes.slice(0, at)).map((x) => x.id as string);
 				m.nodes = a.front ? [...m.nodes.filter((x) => x !== n), n] : [n, ...m.nodes.filter((x) => x !== n)];
-				o.reorders.push({ dev: d.name, step, atMs: this.clock.now(), node: n.id as string, front: a.front, siblings, doc: docIdOf(d, path) });
+				o.reorders.push({ dev: d.name, step, atMs: this.clock.now(), node: n.id as string, front: a.front, siblings, passed, doc: docIdOf(d, path) });
 				o.record(`n:${n.id as string}`)?.touches.push({ dev: d.name, field: "rank", value: `z${step}`, step, atMs: this.clock.now() });
 				what = `${n.id as string} to ${a.front ? "front" : "back"}`;
 				break;

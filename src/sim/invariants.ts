@@ -649,6 +649,11 @@ export function checkCanvas(devs: readonly SimDevice[], oracle: CanvasOracle): V
 		if (deletedNode(r.node) || oracle.sorted.has(r.node) || inCopy(r.node)) continue;
 		const group = new Set([r.node, ...r.siblings]);
 		if (oracle.reorders.some((x) => x.dev !== r.dev && group.has(x.node))) continue;
+		// Another device moved a node past this one alone: an adjacent swap, which its file order cannot tell from this
+		// node moved the other way (the rank reconcile keeps one of the two equally long ordered runs), so its rank write
+		// may land on this node and race the reorder (sim 5 devices seed 699804894: C, offline, moved a-1n1 to the front
+		// past c78n0 alone, and its merge re-ranked c78n0 under B's concurrent move of c78n0 to the front).
+		if (oracle.reorders.some((x) => x.dev !== r.dev && x.passed.length === 1 && x.passed[0] === r.node)) continue;
 		if (oracle.reorders.some((x) => x.dev === r.dev && x.node === r.node && x.atMs > r.atMs)) continue;
 		const exempt = (m: string) => deletedNode(m) || oracle.sorted.has(m) || inCopy(m) || oracle.reorders.some((x) => x.dev === r.dev && x.node === m && x.atMs > r.atMs);
 		const loss = orderLoss(r, order, oracle.wipes, exempt);
