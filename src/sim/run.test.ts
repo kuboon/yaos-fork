@@ -411,7 +411,7 @@ test("invariants: canvas validity, lost records, lost field writes and discarded
 });
 
 test("invariants: a reorder holds in its doc, or after a wipe without mirrors in the doc its renamed file became", () => {
-	const r: ReorderIntent = { dev: "B", step: 137, atMs: 100, node: "n4", front: true, siblings: ["n1", "n2", "n3"], doc: "d1" };
+	const r: ReorderIntent = { dev: "B", step: 137, atMs: 100, node: "n4", front: true, siblings: ["n1", "n2", "n3"], passed: ["n1", "n2", "n3"], doc: "d1" };
 	const old: { path: string; doc: string; ids: string[] } = { path: "canvas/c2.canvas", doc: "d1", ids: ["n1", "n4", "n2", "n3"] };
 	const renamed = { path: "boards/c4.canvas", doc: "d2", ids: ["n1", "n2", "n3", "n4"] };
 	const none = () => false;

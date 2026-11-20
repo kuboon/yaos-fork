@@ -1,0 +1,45 @@
+{
+	"seed": 728951616,
+	"config": {
+		"devices": 3,
+		"faults": "HOSTILE_FAULTS",
+		"seed": 728951616
+	},
+	"violations": [
+		{
+			"inv": "clean",
+			"detail": "hostile device: A: ns entry jgZTYLhcYGfdMtY7_ESmJQ (notes/hostile-dup.md, live) created by the hostile device"
+		},
+		{
+			"inv": "clean",
+			"detail": "no quiescence within 600000ms: A waits on a body-less doc's creator, B waits on a body-less doc's creator, C waits on a body-less doc's creator"
+		}
+	],
+	"note": "Nightly sweep (3 devices, hostile member device), seed 728951616. A harness gap: the hostile device's nsInvalid frame (a create of a docId that exists) was held by the daily limit and resent after an epoch reset, where the docId no longer exists, so the create was valid and left a live body-less entry every device waited on. No honest client resends frames across an epoch (the migration drops what it had not sent). hostile.ts now drops its unreceipted frames when a session reports another vault epoch.",
+	"minimizedPlan": [
+		{
+			"i": 48,
+			"gapMs": 568,
+			"fault": {
+				"t": "dailyLimit",
+				"durationMs": 49511
+			}
+		},
+		{
+			"i": 72,
+			"gapMs": 954,
+			"fault": {
+				"t": "hostile",
+				"kind": "nsInvalid",
+				"pick": 0.7525837491266429
+			}
+		},
+		{
+			"i": 85,
+			"gapMs": 1066,
+			"fault": {
+				"t": "epochReset"
+			}
+		}
+	]
+}
