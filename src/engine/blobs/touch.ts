@@ -89,6 +89,14 @@ export interface BlobTouchDeps {
 	readonly blobBytes: (hash: ContentHash) => Promise<Uint8Array | null>;
 	/** A held frame may be sendable now (pump the sender). */
 	readonly onReady: () => void;
+	/**
+	 * An own ns frame whose blob is gone: neither in the store nor in local bytes (another device's GC swept it while
+	 * the frame waited, and the file moved on). Sent, it would point its doc at a blob nobody has, and every device
+	 * would retry the download forever (sim attachment clean-ups seed 699804870). The engine withdraws it (poisoned:
+	 * never sent, out of the optimistic view) and the planner re-derives the doc from the file on disk now. Absent:
+	 * the frame goes out as it is.
+	 */
+	readonly unresolvable?: (rec: OutboxRecord) => void;
 	readonly diag: (code: string, fields: Record<string, string | number | boolean | null>) => void;
 }
 
@@ -218,9 +226,14 @@ export class BlobTouch implements PutPolicy {
 		const cfid = rec.clientFrameId;
 		this.evaluating.add(cfid);
 		void this.check(rec, refs).then(
-			() => {
+			(missing) => {
 				this.evaluating.delete(cfid);
 				this.retry.delete(cfid);
+				if (missing && rec.kind === "nsOps" && this.deps.unresolvable) {
+					this.forget(cfid);
+					this.deps.unresolvable(rec);
+					return;
+				}
 				if (this.refs.has(cfid)) this.cleared.set(cfid, this.deps.clock.monotonic() + this.deps.graceMs / 4);
 				this.deps.onReady();
 			},
@@ -236,36 +249,39 @@ export class BlobTouch implements PutPolicy {
 		);
 	}
 
-	private async check(rec: OutboxRecord, refs: ContentHash[] | "bodyRef"): Promise<void> {
+	/** True when a referenced blob is gone (no stored object, no local bytes). */
+	private async check(rec: OutboxRecord, refs: ContentHash[] | "bodyRef"): Promise<boolean> {
 		const { crypto } = this.deps;
 		if (refs === "bodyRef") {
 			const hash = bytesToHex(await this.deps.hash.sha256(rec.content)) as ContentHash;
-			await this.refresh(hash, await crypto.blobAddress(hash), rec.content);
-			return;
+			return !(await this.refresh(hash, await crypto.blobAddress(hash), rec.content));
 		}
-		for (const hash of new Set(refs)) await this.refresh(hash, await crypto.blobAddress(hash), null);
+		let missing = false;
+		for (const hash of new Set(refs)) if (!(await this.refresh(hash, await crypto.blobAddress(hash), null))) missing = true;
+		return missing;
 	}
 
-	/** Makes `hash` safe to reference now: committed, fresh own PUT, or PUT again. Store errors throw. */
-	private async refresh(hash: ContentHash, address: BlobAddress, own: Uint8Array | null): Promise<void> {
-		if (this.deps.committed()?.has(hash)) return;
-		if (await this.freshPut(hash, address, this.deps.clock.now())) return;
+	/** Makes `hash` safe to reference now: committed, fresh own PUT, or PUT again; false: gone. Store errors throw. */
+	private async refresh(hash: ContentHash, address: BlobAddress, own: Uint8Array | null): Promise<boolean> {
+		if (this.deps.committed()?.has(hash)) return true;
+		if (await this.freshPut(hash, address, this.deps.clock.now())) return true;
 		const store = this.deps.store!;
 		const bytes = own ?? (await this.localBytes(hash));
 		if (bytes) {
 			await putAt(store, this.deps.crypto, this, hash, address, bytes);
 			this.deps.diag("blob-refreshed", { from: own ? "frame" : "local" });
-			return;
+			return true;
 		}
 		const sealed = await store.get(address);
 		if (sealed) {
 			await store.put(address, [sealed]);
 			await this.noted(hash, address);
 			this.deps.diag("blob-refreshed", { from: "store" });
-			return;
+			return true;
 		}
 		// Neither local bytes nor a stored object: the reference is already unresolvable, holding it helps no one.
 		this.deps.diag("blob-refresh-missing", {});
+		return false;
 	}
 
 	private async localBytes(hash: ContentHash): Promise<Uint8Array | null> {
