@@ -113,6 +113,23 @@ function syncedRecordOf(e: { readonly docId: SyncedRecord["docId"]; readonly pat
 	};
 }
 
+/**
+ * A mirrored frame's dependency and state in this store. A dependency among the inherited frames maps to its new id.
+ * One the mirror does not carry (the create committed in the predecessor and left its outbox) is no record of this
+ * store: the frame waits on nothing here, and a held frame goes out as pending. Kept as a dependency, the boot refold
+ * (an empty ns fold, nothing read yet) read the create as folded without the doc and deleted the frames as junk: own
+ * edits only they held, and the merge then took the disk as synced and wrote the relay's older text over them (sim
+ * heavy seed 716094400). Body and canvas frames go out whatever their state (header step 2). "sent" (mirrors before
+ * DB schema 2) was a pending record in flight: maybe sent, resent like any pending one.
+ */
+export function inheritedDependency(
+	f: Pick<OutboxMirrorFrame, "dependsOn" | "state">, ids: ReadonlyMap<string, OutboxRecord["clientFrameId"]>,
+): { readonly dependsOn: OutboxRecord["dependsOn"]; readonly state: OutboxRecord["state"] } {
+	const dependsOn = f.dependsOn === null ? null : (ids.get(f.dependsOn) ?? null);
+	const state = f.state === "sent" || (f.state === "held" && dependsOn === null) ? "pending" : f.state;
+	return { dependsOn, state };
+}
+
 /** The predecessor `dir`'s mirrored frames as this store's records (header step 2). */
 async function reissue(c: EngineCtx, dir: DeviceId, frames: readonly OutboxMirrorFrame[]): Promise<{ records: OutboxRecord[]; skipped: number }> {
 	const now = c.now();
@@ -149,11 +166,11 @@ async function reissue(c: EngineCtx, dir: DeviceId, frames: readonly OutboxMirro
 			if (local.length === 0) c.diag("mirror-ref-content-missing", {});
 		}
 		const origins: FrameOrigin[] = numbered ? [{ deviceId: dir, clientFrameId: f.clientFrameId, frameNo: oldNo }, ...(f.origins ?? [])] : [];
+		const { dependsOn, state } = inheritedDependency(f, ids);
 		records.push({
-			// "sent" (mirrors before DB schema 2) was a pending record in flight: maybe sent, resent like any pending one.
-			clientFrameId, order: f.order, stream: f.stream, kind, state: f.state === "sent" ? "pending" : f.state, sealed: s.sealed, content: local,
+			clientFrameId, order: f.order, stream: f.stream, kind, state, sealed: s.sealed, content: local,
 			authorNsSeq, flags, frameNo: numbered ? frameNo : null, keyEpoch: s.keyEpoch,
-			dependsOn: f.dependsOn === null ? null : (ids.get(f.dependsOn) ?? f.dependsOn),
+			dependsOn,
 			adoptOf: f.adoptOf ? { ...f.adoptOf, receivedAtMs: now } : null, createdAtMs: now,
 			...(origins.length > 0 ? { origins } : {}),
 		});

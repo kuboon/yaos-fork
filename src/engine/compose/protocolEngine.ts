@@ -619,10 +619,16 @@ export class ComposedEngine {
 		if (this.starting) await this.starting;
 		const old = this.rt;
 		if (reason === "epoch" && old) {
-			this.migration = await prepareEpochMigration(old).catch((e) => {
+			const migration = await prepareEpochMigration(old).catch((e) => {
 				this.log(`epoch prepare failed: ${String(e)}`);
 				return { bases: [], docDeletes: [], moves: [] };
 			});
+			// Another restart replaced the runtime while the prepare ran (the store lost mid-migration): that restart
+			// owns the lifecycle now, and its runtime migrates again when it sees the epoch. Going on stopped the runtime
+			// a second time and started another: one of the two ran on unseen, posting the old epoch's status between the
+			// new one's (sim blob-faults seed 217461220: the last status read 3 unsent frames forever).
+			if (this.rt !== old || this.disposed) return;
+			this.migration = migration;
 		} else if (old) this.carried = [...this.carried, ...old.rec.ctx.renames]; // an epoch's migration keeps them (MetaPathMove)
 		this.rt = null;
 		this.options.onRuntime?.(null);
