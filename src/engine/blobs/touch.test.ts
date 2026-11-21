@@ -42,7 +42,7 @@ class Times implements PutTimes {
 	async noteBlobPut(a: string, ms: number) { this.at.set(a, ms); }
 }
 
-function setup(o: { committed?: Set<ContentHash> | null; local?: Map<ContentHash, Uint8Array>; store?: Store | null } = {}) {
+function setup(o: { committed?: Set<ContentHash> | null; local?: Map<ContentHash, Uint8Array>; store?: Store | null; unresolvable?: (rec: OutboxRecord) => void } = {}) {
 	const clock = new FakeClock();
 	const store = o.store === undefined ? new Store() : o.store;
 	const times = new Times();
@@ -53,6 +53,7 @@ function setup(o: { committed?: Set<ContentHash> | null; local?: Map<ContentHash
 		committed: () => committed,
 		blobBytes: async (h) => o.local?.get(h) ?? null,
 		onReady: () => void ev.ready++,
+		...(o.unresolvable ? { unresolvable: o.unresolvable } : {}),
 		diag: (c) => void ev.diag.push(c),
 	});
 	return { clock, store: store!, times, ev, touch, setCommitted: (s: Set<ContentHash> | null) => { committed = s; } };
@@ -162,6 +163,27 @@ test("R3 gate: without local bytes the stored object is re-PUT verbatim; neither
 	await settle(ev);
 	assert.ok(ev.diag.includes("blob-refresh-missing"));
 	assert.equal(touch.ready(r2), true);
+});
+
+test("R3 gate: an ns frame whose blob is gone everywhere is withdrawn, not sent; one still at hand goes out (sim seed 699804870)", async () => {
+	// Another device's GC swept the blob while the frame waited offline, and the file moved on (no local bytes): sent,
+	// the setBlob would point its doc at a blob nobody has. Withdrawn, the planner re-derives the doc from the disk.
+	const withdrawn: OutboxRecord[] = [];
+	const { touch, ev } = setup({ unresolvable: (r) => void withdrawn.push(r) });
+	const gone = H(bytes(10, 5));
+	const r = nsCreate(gone);
+	assert.equal(touch.ready(r), false);
+	for (let i = 0; i < 50 && withdrawn.length === 0; i++) await new Promise((res) => setImmediate(res));
+	assert.deepEqual(withdrawn.map((x) => x.clientFrameId), [r.clientFrameId]);
+	assert.ok(ev.diag.includes("blob-refresh-missing"));
+	assert.equal(ev.ready, 0, "the sender is not poked for it");
+	// A blob that is still somewhere goes out as before.
+	const pic = bytes(64, 6);
+	const kept = setup({ local: new Map([[H(pic), pic]]), unresolvable: () => assert.fail("not withdrawn") });
+	const r2 = nsCreate(H(pic));
+	assert.equal(kept.touch.ready(r2), false);
+	await settle(kept.ev);
+	assert.equal(kept.touch.ready(r2), true);
 });
 
 test("R3 gate: network back (retryNow) or a new session (reset) makes a backoff due at once; the count is kept, so a failure after it waits longer", async () => {

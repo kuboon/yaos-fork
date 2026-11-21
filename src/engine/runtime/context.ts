@@ -195,6 +195,11 @@ export class EngineCtx {
 			committed: () => this.committedBlobs(),
 			blobBytes: (h) => opts.blobBytes?.(h) ?? Promise.resolve(null),
 			onReady: () => this.sender?.poke(),
+			// Withdrawn, as a dropped inherited frame is (dropInherited): out of the outbox, never sent, never folded.
+			unresolvable: (rec) => {
+				this.diag("frame-withdrawn", { why: "blob-gone" });
+				void this.dropUnsent([rec]).catch((e: unknown) => this.diag("frame-withdraw-failed", { error: String(e) }));
+			},
 			diag: (code, fields) => this.diag(code, fields),
 		});
 		this.deps = {
@@ -514,6 +519,25 @@ export class EngineCtx {
 		}
 		const changes = this.ns.reconcileHeld(this.outbox);
 		if (changes.length > 0) this.applyOutboxResult(await this.repo.tOutbox(changes));
+	}
+
+	/**
+	 * Own unsent frames withdrawn before they went out (BlobTouch: a frame whose blob is gone): out of the outbox and the
+	 * sender, never folded. The ns overlay drops them, so the planner re-derives their docs from the disk.
+	 */
+	async dropUnsent(recs: readonly OutboxRecord[]): Promise<void> {
+		const res = await this.repo.tOutbox(recs.map((r) => ({ t: "delete" as const, clientFrameId: r.clientFrameId })));
+		for (const r of res.removed) {
+			this.outbox.delete(r.clientFrameId);
+			this.sender.remove(r.clientFrameId);
+			this.unregisterAdopt(r.clientFrameId);
+		}
+		if (res.removed.length === 0) return;
+		this.mirror.schedule();
+		this.scheduleStatus();
+		const changes = this.ns.reconcileHeld(this.outbox);
+		if (changes.length > 0) this.applyOutboxResult(await this.repo.tOutbox(changes));
+		this.emit("onNsFold", () => this.opts.onNsFold?.([], false));
 	}
 
 	/** Every fold folds what is available (engine start: reload from the snapshots; session start: rows read). */

@@ -349,9 +349,12 @@ test("GC preconditions: each refusal deletes nothing", async (t) => {
 		const w = new World();
 		try {
 			const a = await w.device(A);
-			const ref = bytesOf(101);
-			await a.submitNs([createBlob(newDoc(), H(ref))]);
+			// Committed while the store had it (the sender withdraws a reference to a blob that is gone everywhere), then
+			// the store lost it: the listing holds no referenced address.
+			const ref = w.plant(101);
+			await a.submitNs([createBlob(newDoc(), ref.hash)]);
 			await idle(a);
+			w.store.objects.delete(ref.address);
 			garbageOnly(w);
 			const r = await sweep(a);
 			noDeletes(w, r, "addressing-mismatch");
