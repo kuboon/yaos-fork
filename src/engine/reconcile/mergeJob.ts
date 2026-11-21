@@ -38,7 +38,7 @@ import { epochBaseOf, MAX_CAS_ATTEMPTS, overwriteAllowed, trustedEpochBase, writ
 import type { BodyHandle } from "./deps";
 import { writeOk, type Env, type JobOutcome } from "./diskJobs";
 import { MAX_TEXT_FILE_BYTES } from "./localState";
-import { heldTextsFit, keepHeld, publishHeld } from "./heldJob";
+import { heldTextsFit, keepHeld, keepWaiting, publishHeld } from "./heldJob";
 import { KeyMissingError } from "../keyring/writeGate";
 import { applyOldDeletes } from "./oldDeletes";
 import { makeBase } from "./store";
@@ -56,6 +56,7 @@ export function applyMinimalDiff(h: BodyHandle, ytext: Y.Text, from: string, to:
 
 export async function reconcileContent(env: Env, op: ReconcileOp): Promise<JobOutcome> {
 	const { ctx } = env;
+	if (op.keep) return keepWaiting(env, op);
 	const h = await ctx.log.acquireBody(op.docId, op.kind);
 	if (!h) return "fail";
 	try {

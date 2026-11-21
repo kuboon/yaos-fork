@@ -21,7 +21,8 @@
 
 import type { ContentHash, DocId, LocalEntry, SyncedEntry } from "../../core/types";
 import { HELD_TEXT_MAX_BYTES, HELD_TEXT_MAX_CHARS } from "../../core/limits";
-import { utf8ByteLength, utf8Encode } from "../../core/codec/lib0";
+import { utf8ByteLength, utf8Decode, utf8Encode } from "../../core/codec/lib0";
+import { canonicalizeMarkdown } from "../../core/hash/markdownLf";
 import { canvasToMergeText } from "../../core/hash/canvasCanonical";
 import { merge } from "../../core/merge/merge";
 import { applyEditsTo, minimalDiff } from "../../core/merge/minimalDiff";
@@ -31,6 +32,7 @@ import { mergeCanvasSides, parseDiskCanvas, parseMergeText, type CanvasMergeOutp
 import { MAX_CAS_ATTEMPTS, writeConflictCopy, type ReconcileOp } from "./contentSteps";
 import type { BodyHandle } from "./deps";
 import type { Env, JobOutcome } from "./diskJobs";
+import { MAX_TEXT_FILE_BYTES, textContentHash } from "./localState";
 import { hashBase, makeBase } from "./store";
 
 export interface HeldTexts {
@@ -58,6 +60,29 @@ export async function keepHeld(env: Env, docId: DocId, hash: ContentHash, texts:
 	if (s.held?.hash === hash && (s.held.bytes !== undefined || texts === null)) return;
 	if (!texts) return ctx.commit({ syncedPut: [{ ...s, held: { hash } }] });
 	await ctx.commit({ syncedPut: [{ ...s, held: { hash, bytes: texts.bytes } }], heldPut: [{ docId, hash, text: texts.text, base: texts.base }] });
+}
+
+/**
+ * A file edit whose merge waits for the doc's body (a reconcileContent op with `keep`): kept on S as the gate's refusals
+ * are, with the stored base. Read now, so a later edit is kept by the next pass (its hash differs from the held one).
+ */
+export async function keepWaiting(env: Env, op: ReconcileOp): Promise<JobOutcome> {
+	const { ctx } = env;
+	const s = ctx.synced(op.docId);
+	if (!s) return "deferred";
+	const rd = await ctx.read(ctx.diskPathOf(op.path), MAX_TEXT_FILE_BYTES);
+	if (!rd.ok) {
+		if (rd.reason === "missing") env.scan.markDirty(ctx.diskPathOf(op.path), null);
+		return "deferred";
+	}
+	const text = utf8Decode(rd.bytes, true);
+	// Not mergeable as it is (invalid UTF-8, a canvas that does not parse): nothing to keep, and nothing done (the pass
+	// stays quiet: the doc waits on its body either way); the merge reports it.
+	if (text === null || (op.kind === "canvas" && !parseDiskCanvas(rd.bytes).ok)) return "deferred";
+	const hash = await textContentHash(ctx.deps.hash, op.kind, rd.bytes);
+	const base = s.hasBase && op.hasBase ? await ctx.store.loadBase(op.docId) : null;
+	await keepHeld(env, op.docId, hash, heldTextsFit(env, op.docId, op.kind === "markdown" ? canonicalizeMarkdown(text) : text, base));
+	return "ok";
 }
 
 /** S without its held edit (kept on: the marks, the path). */

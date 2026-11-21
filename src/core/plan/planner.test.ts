@@ -111,7 +111,12 @@ test("row live/present/present: markdown content Rc / Lc / both -> reconcileCont
 	assert.deepEqual(both.ops, [{ op: "reconcileContent", docId: "d1", path: "a.md", kind: "markdown", hasBase: false }]);
 	// content decisions need body.caughtUp
 	const behind = run({ remote: [R("d1", "a.md", { body: { ...R("d1", "a.md").body!, caughtUp: false } })], synced: [S("d1", "a.md")], local: [L("a.md", h("c1"))] });
-	assert.deepEqual(behind.ops, [{ op: "wait", docId: "d1", reason: "body-not-caught-up" }]);
+	// ... and the file's edit is kept on S meanwhile (held), once per content
+	assert.deepEqual(behind.ops, [{ op: "reconcileContent", docId: "d1", path: "a.md", kind: "markdown", hasBase: true, keep: true }, { op: "wait", docId: "d1", reason: "body-not-caught-up" }]);
+	const kept = run({ remote: [R("d1", "a.md", { body: { ...R("d1", "a.md").body!, caughtUp: false } })], synced: [S("d1", "a.md", { held: { hash: h("c1") } })], local: [L("a.md", h("c1"))] });
+	assert.deepEqual(kept.ops, [{ op: "wait", docId: "d1", reason: "body-not-caught-up" }]);
+	const unchanged = run({ remote: [R("d1", "a.md", { body: { ...R("d1", "a.md").body!, caughtUp: false, version: V(12) } })], synced: [S("d1", "a.md")], local: [L("a.md", h("c0"))] });
+	assert.deepEqual(unchanged.ops, [{ op: "wait", docId: "d1", reason: "body-not-caught-up" }]);
 	// canvas uses the same op with kind canvas
 	const cv = run({ remote: [R("c1", "x.canvas")], synced: [S("c1", "x.canvas")], local: [L("x.canvas", h("c1"))] });
 	assert.equal(find(cv, "reconcileContent").kind, "canvas");
