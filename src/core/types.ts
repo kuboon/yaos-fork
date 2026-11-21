@@ -559,6 +559,12 @@ export type PlannerOp =
 		 * read or written. `path` is S.path. Planned for a doc whose file is gone (liveMissing), the gate open or not.
 		 */
 		readonly held?: true;
+		/**
+		 * Keep the file's edit on the synced record as its held edit (SyncedEntry.held), nothing merged: the doc's body
+		 * is not caught up, so the merge waits (an offline device that knows of rows it has not read). A delete of the
+		 * file before the merge then publishes the edit first, as for one the write gate refused.
+		 */
+		readonly keep?: true;
 	}
 	| { readonly op: "pushBlob"; readonly docId: DocId; readonly path: VaultPath; readonly hash: ContentHash; readonly size: number }
 	| { readonly op: "fetchBlob"; readonly docId: DocId; readonly path: VaultPath; readonly hash: ContentHash; readonly size: number }
