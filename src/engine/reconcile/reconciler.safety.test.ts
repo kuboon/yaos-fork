@@ -396,6 +396,46 @@ test("held edit (canvas): a record deleted while key-missing stays deleted after
 	assert.deepEqual(w.conflictCopies(), []);
 });
 
+test("held edit (body not caught up): a file edit waiting for the body is kept; deleted before the merge, a peer's edit restores the doc with it", async () => {
+	// Sim clone-faults seed 961423591: offline with rows not read, the user removed a canvas node and deleted the file.
+	// Edit beats delete on reconnect brought the doc back with the node: the edit had never left the file.
+	const w = new World();
+	await w.boot();
+	const id = w.log.remoteCreate(P("a.md"), "one\ntwo\nthree\n");
+	await w.sync();
+	w.log.setCaughtUp(id, false);
+	w.vault.userWrite("a.md", "one\nthree\n");
+	await w.sync();
+	assert.equal(w.log.text(id), "one\ntwo\nthree\n", "nothing merged while the body is behind");
+	const kept = await w.r.ctx.store.loadHeld(id);
+	assert.deepEqual({ text: kept?.text, base: kept?.base }, { text: "one\nthree\n", base: "one\ntwo\nthree\n" });
+	w.vault.userDelete("a.md");
+	await w.sync();
+	w.log.remoteEdit(id, (t) => t.insert(t.length, "peer\n"));
+	w.log.setCaughtUp(id, true);
+	await w.sync();
+	assert.equal(w.log.text(id), "one\nthree\npeer\n", "the kept edit is in the doc");
+	assert.equal(w.vault.text("a.md"), "one\nthree\npeer\n", "edit beats delete, without the removed line");
+	assert.deepEqual(w.conflictCopies(), []);
+	assert.equal(w.synced(id)!.held, undefined);
+});
+
+test("held edit (body not caught up): merged once the body catches up, the kept edit is dropped with the sync point", async () => {
+	const w = new World();
+	await w.boot();
+	const id = w.log.remoteCreate(P("a.md"), "one\ntwo\n");
+	await w.sync();
+	w.log.setCaughtUp(id, false);
+	w.vault.userWrite("a.md", "one\ntwo\nmine\n");
+	await w.sync();
+	assert.ok(w.synced(id)!.held?.bytes !== undefined, "kept while waiting");
+	w.log.setCaughtUp(id, true);
+	await w.sync();
+	assert.equal(w.log.text(id), "one\ntwo\nmine\n");
+	assert.equal(w.synced(id)!.held, undefined);
+	assert.deepEqual(w.storage.dump(DB, "heldText"), []);
+});
+
 test("held edit: the texts are kept within HELD_TEXT_MAX_BYTES over all records and HELD_TEXT_MAX_CHARS a text; past them the hash alone", async () => {
 	const w = new World();
 	await w.boot();

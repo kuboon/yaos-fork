@@ -522,7 +522,14 @@ export function planWith(input0: PlannerInput, options: Partial<PlannerContext> 
 				return { ...none, ops: [{ op: "nsDelete", docId, baseBodySeq: 0 }, drop(docId)] };
 			}
 			if (!Lc && !Rc) return { ...none, ops: statMoved || pathChanged ? [putFull()] : [] };
-			if (body === null || !body.caughtUp) return { ...none, ops: [waitOp(docId, "body-not-caught-up"), ...putPath()] };
+			if (body === null || !body.caughtUp) {
+				// The file's edit waits for the body. Kept on S meanwhile (its text, heldJob.ts): deleted before the merge,
+				// it is published first. Otherwise edit beats delete (a peer's edit) restored the doc without it, the
+				// records or lines the user removed back in the file (sim clone-faults seed 961423591: an offline canvas
+				// edit, then the file deleted, restored with the deleted node on reconnect).
+				const keep: PlannerOp[] = Lc && s.held?.hash !== lHash ? [{ op: "reconcileContent", docId, path: diskPath, kind: s.kind as ContentKind, hasBase: s.hasBase, keep: true }] : [];
+				return { ...none, ops: [...keep, waitOp(docId, "body-not-caught-up"), ...putPath()] };
+			}
 			// The create's initial frames are still in flight: merging against the empty text would read it as a
 			// deletion. A born-empty S (own create, frames maybe never written) merges, so the runner can re-push.
 			if (!body.hasContent && r.createHash !== EMPTY_CONTENT_HASH && s.contentHash !== EMPTY_CONTENT_HASH) {
@@ -834,7 +841,9 @@ export function planWith(input0: PlannerInput, options: Partial<PlannerContext> 
 			pathChanged = true;
 		}
 		const step = contentStep(s, r, l, diskPath, syncedPath, pathChanged);
-		push([...ops, ...step.ops], step.destructive, step.key, diskPath);
+		// A rebound record (prefix) is the winner's only once the rebind ran: nothing of it to keep yet.
+		const stepOps = prefix.length > 0 ? step.ops.filter((o) => !(o.op === "reconcileContent" && o.keep)) : step.ops;
+		push([...ops, ...stepOps], step.destructive, step.key, diskPath);
 	};
 
 	const planSynced = (s0: SyncedEntry): void => {
